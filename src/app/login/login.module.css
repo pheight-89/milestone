@@ -117,3 +117,14 @@
 .signupLink a:hover {
   text-decoration: underline;
 }
+
+.forgotLink {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  text-align: right;
+  margin-top: var(--space-1);
+}
+
+.forgotLink:hover {
+  color: var(--color-black);
+}

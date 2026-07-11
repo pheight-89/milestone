@@ -80,18 +80,21 @@ function LoginForm() {
           />
         </div>
 
-        <div className={styles.field}>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Your password"
-            required
-          />
-        </div>
+          <div className={styles.field}>
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Your password"
+              required
+            />
+            <Link href="/forgot-password" className={styles.forgotLink}>
+              Forgot your password?
+            </Link>
+          </div>
 
         <button type="submit" className={styles.button} disabled={loading}>
           {loading ? "Signing in..." : "Sign In"}
