@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import styles from "./events.module.css";
 
 export default function DashboardEventPage() {
@@ -86,6 +87,8 @@ export default function DashboardEventPage() {
             </div>
           );
         })}
+        <Link href="/dashboard/events/new">Add New Event</Link>
+        <Link href="/dashboard">Return To Dashboard</Link>
       </div>
     </main>
   );
