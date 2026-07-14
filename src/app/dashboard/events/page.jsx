@@ -1,13 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import styles from "./dashboard.module.css";
-import Link from "next/link";
+import styles from "./events.module.css";
 
-export default function DashboardPage() {
+export default function DashboardEventPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
   const [org, setOrg] = useState(null);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,7 +33,13 @@ export default function DashboardPage() {
           return;
         }
 
-        setUser(data.user);
+        const eventRes = await fetch("/api/events", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const eventData = await eventRes.json();
+        if (eventRes.ok) {
+          setEvents(eventData.data);
+        }
 
         const orgRes = await fetch(`/api/orgs/${data.user.org_id}`);
         const orgData = await orgRes.json();
@@ -52,12 +57,6 @@ export default function DashboardPage() {
     checkAuth();
   }, [router]);
 
-  async function handleLogout() {
-    await fetch("api/auth/logout", { method: "POST" });
-    localStorage.removeItem("milestone_token");
-    router.push("/login");
-  }
-
   if (loading) {
     return (
       <main className={styles.main}>
@@ -68,26 +67,25 @@ export default function DashboardPage() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Dashboard</h1>
-          <p className={styles.orgName}>{user?.email}</p>
-        </div>
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          Sign Out
-        </button>
-      </div>
-
-      <div className={styles.content}>
-        <div className={styles.card}>
-          <h2>Welcome to Milestone</h2>
-          <p>Your dashboard is ready. Events and rosters coming soon.</p>
-          <Link href="/dashboard/events">EVENTS</Link>
-          <div className={styles.meta}>
-            <span>Role: {user?.role}</span>
-            <span>Organization: {org?.name}</span>
-          </div>
-        </div>
+      <h1>{org?.name}</h1>
+      <div className={styles.cardsContainer}>
+        {events.map((event) => {
+          const date = new Date(event.date);
+          return (
+            <div key={event.id} className={styles.card}>
+              <h2>{event.title}</h2>
+              <p>{event.description}</p>
+              <p>
+                {date.toLocaleDateString("en-US", {
+                  month: "2-digit",
+                  day: "2-digit",
+                  year: "numeric",
+                })}
+              </p>
+              <p>Capacity: {event.capacity}</p>
+            </div>
+          );
+        })}
       </div>
     </main>
   );
