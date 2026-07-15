@@ -2,6 +2,25 @@ import "server-only";
 import { getUserAuth } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+export async function GET(request, { params }) {
+  const { id } = await params;
+  const { user, error } = await getUserAuth(request);
+  if (error) return Response.json({ error }, { status: 401 });
+
+  const { data: event, error: eventError } = await supabaseAdmin
+    .from("events")
+    .select("*")
+    .eq("id", id)
+    .eq("org_id", user.org_id)
+    .single();
+
+  if (eventError) {
+    return Response.json({ error: "Event not found" }, { status: 404 });
+  }
+
+  return Response.json({ data: event }, { status: 200 });
+}
+
 export async function PATCH(request, { params }) {
   const { id } = await params;
   const { user, error } = await getUserAuth(request);
