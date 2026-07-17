@@ -1,24 +1,15 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { cookies } from "next/headers";
 
 export async function GET(request) {
-  const cookieHeader = request.headers.get("cookie");
-
-  if (!cookieHeader) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
-  }
-
-  const token = cookieHeader
-    .split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith("milestone_token="))
-    ?.split("=")[1];
+  const cookieStore = await cookies();
+  const token = cookieStore.get("milestone_token")?.value;
 
   if (!token) {
     return Response.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // Verify the token and get the user
   const {
     data: { user },
     error,
