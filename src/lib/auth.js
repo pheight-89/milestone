@@ -1,13 +1,15 @@
+import "server-only";
 import { supabaseAdmin } from "./supabaseAdmin";
+import { cookies } from "next/headers";
 
-export async function getUserAuth(req) {
-  const authHeader = req.headers.get("authorization");
+export async function getUserAuth() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("milestone_token")?.value;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
     return { user: null, error: "No token provided" };
   }
 
-  const token = authHeader.split(" ")[1];
   const {
     data: { user },
     error,
@@ -22,6 +24,10 @@ export async function getUserAuth(req) {
     .select("id, org_id, role")
     .eq("auth_user_id", user.id)
     .single();
+
+  if (!staffRecord) {
+    return { user: null, error: "Staff record not found" };
+  }
 
   return {
     user: {
