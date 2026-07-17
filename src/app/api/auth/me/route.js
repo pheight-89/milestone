@@ -1,24 +1,22 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { Finlandica } from "next/font/google";
 
 export async function GET(request) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return Response.json({ error: "No token provided" }, { status: 401 });
+  const cookieHeader = request.header.get("cookie");
+
+  if (!cookieHeader) {
+    return Response.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const token = authHeader.split(" ")[1];
+  const token = cookieHeader
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith("milestone_token="))
+    ?.split("=")[1];
 
-  const {
-    data: { user },
-    error,
-  } = await supabaseAdmin.auth.getUser(token);
-
-  if (error || !user) {
-    return Response.json(
-      { error: "Invalid or expired token" },
-      { status: 401 },
-    );
+  if (!token) {
+    return Response.json({ error: "Not authenticated" }, { status: 401 });
   }
 
   const { data: staffRecord, error: staffError } = await supabaseAdmin

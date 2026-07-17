@@ -8,5 +8,11 @@ export async function POST(request) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  return Response.json({ success: true }, { status: 200 });
+  const response = Response.json({ success: true }, { status: 200 });
+  response.headers.set(
+    "Set-Cookie",
+    "milestone_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax",
+  );
+
+  return response;
 }

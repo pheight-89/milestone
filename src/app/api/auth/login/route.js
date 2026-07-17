@@ -21,12 +21,12 @@ export async function POST(request) {
     return Response.json({ error: error.message }, { status: 401 });
   }
 
-  return Response.json(
-    {
-      success: true,
-      user: data.user,
-      session: data.session,
-    },
-    { status: 200 },
+  const response = Response.json({ success: true }, { status: 200 });
+
+  response.headers.set(
+    "Set-Cookie",
+    `milestone_token=${data.session.access_token}; HttpOnly; Path=/; Max-Age=3600, SameSite=Lax`,
   );
+
+  return response;
 }

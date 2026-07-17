@@ -45,7 +45,6 @@ function LoginForm() {
         return;
       }
 
-      localStorage.setItem("milestone_token", data.session.access_token);
       router.push("/dashboard");
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -64,7 +63,8 @@ function LoginForm() {
           Account created successfully! Please sign in.
         </div>
       )}
-      {error && <div classNane={styles.errorBanner}>{error}</div>}
+
+      {error && <div className={styles.errorBanner}>{error}</div>}
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.field}>
@@ -80,30 +80,33 @@ function LoginForm() {
           />
         </div>
 
-          <div className={styles.field}>
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Your password"
-              required
-            />
-            <Link href="/forgot-password" className={styles.forgotLink}>
-              Forgot your password?
-            </Link>
-          </div>
+        <div className={styles.field}>
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Your password"
+            required
+          />
+          <Link href="/forgot-password" className={styles.forgotLink}>
+            Forgot your password?
+          </Link>
+        </div>
 
-        <button type="submit" className={styles.button} disabled={loading}>
+        <button
+          type="submit"
+          className={styles.submitButton}
+          disabled={loading}
+        >
           {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
 
       <p className={styles.signupLink}>
-        Don&apos;t have an account?{""}
-        <Link href="/signup">Get Started</Link>
+        Don&apos;t have an account? <Link href="/signup">Get Started</Link>
       </p>
     </div>
   );
