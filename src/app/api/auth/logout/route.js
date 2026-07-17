@@ -11,7 +11,7 @@ export async function POST(request) {
   const response = Response.json({ success: true }, { status: 200 });
   response.headers.set(
     "Set-Cookie",
-    "milestone_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax",
+    "milestone_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure",
   );
 
   return response;
