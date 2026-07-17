@@ -115,7 +115,7 @@ export default function SignupPage() {
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="confirmPassowrd">Confirm Password</label>
+            <label htmlFor="confirmPassword">Confirm Password</label>
             <input
               id="confirmPassword"
               name="confirmPassword"

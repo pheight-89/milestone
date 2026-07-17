@@ -1,4 +1,4 @@
-"import server-only";
+import "server-only";
 import { supabase } from "@/lib/supabase";
 
 export async function POST(request) {
