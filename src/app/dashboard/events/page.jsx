@@ -12,24 +12,11 @@ export default function DashboardEventPage() {
 
   useEffect(() => {
     async function checkAuth() {
-      const token = localStorage.getItem("milestone_token");
-
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-
       try {
-        const res = await fetch("/api/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+        const res = await fetch("/api/auth/me");
         const data = await res.json();
 
         if (!res.ok) {
-          localStorage.removeItem("milestone_token");
           router.push("/login");
           return;
         }
@@ -48,7 +35,6 @@ export default function DashboardEventPage() {
           setOrg(orgData.org);
         }
       } catch (err) {
-        localStorage.removeItem("milestone_token");
         router.push("/login");
       } finally {
         setLoading(false);
