@@ -21,19 +21,17 @@ export default function DashboardEventPage() {
           return;
         }
 
-        const eventRes = await fetch("/api/events", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const eventData = await eventRes.json();
-        if (eventRes.ok) {
-          setEvents(eventData.data);
-        }
+        // Fetch events and org in parallel
+        const [eventRes, orgRes] = await Promise.all([
+          fetch(`/api/events?orgId=${data.user.org_id}`),
+          fetch(`/api/orgs/${data.user.org_id}`),
+        ]);
 
-        const orgRes = await fetch(`/api/orgs/${data.user.org_id}`);
+        const eventData = await eventRes.json();
         const orgData = await orgRes.json();
-        if (orgRes.ok) {
-          setOrg(orgData.org);
-        }
+
+        if (eventRes.ok) setEvents(eventData.data);
+        if (orgRes.ok) setOrg(orgData.org);
       } catch (err) {
         router.push("/login");
       } finally {
