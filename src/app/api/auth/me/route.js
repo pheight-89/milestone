@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { Finlandica } from "next/font/google";
 
 export async function GET(request) {
-  const cookieHeader = request.header.get("cookie");
+  const cookieHeader = request.headers.get("cookie");
 
   if (!cookieHeader) {
     return Response.json({ error: "Not authenticated" }, { status: 401 });
