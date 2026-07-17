@@ -76,6 +76,7 @@ function LoginForm() {
             value={formData.email}
             onChange={handleChange}
             placeholder="you@organization.com"
+            autoComplete="on"
             required
           />
         </div>
@@ -89,6 +90,7 @@ function LoginForm() {
             value={formData.password}
             onChange={handleChange}
             placeholder="Your password"
+            autoComplete="on"
             required
           />
           <Link href="/forgot-password" className={styles.forgotLink}>
