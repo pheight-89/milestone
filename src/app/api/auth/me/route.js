@@ -1,6 +1,5 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { Finlandica } from "next/font/google";
 
 export async function GET(request) {
   const cookieHeader = request.headers.get("cookie");
@@ -17,6 +16,19 @@ export async function GET(request) {
 
   if (!token) {
     return Response.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  // Verify the token and get the user
+  const {
+    data: { user },
+    error,
+  } = await supabaseAdmin.auth.getUser(token);
+
+  if (error || !user) {
+    return Response.json(
+      { error: "Invalid or expired token" },
+      { status: 401 },
+    );
   }
 
   const { data: staffRecord, error: staffError } = await supabaseAdmin
