@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET(request, { params }) {
   const { id } = await params;
-  const { user, error } = await getUserAuth(request);
+  const { user, error } = await getUserAuth();
   if (error) return Response.json({ error }, { status: 401 });
 
   const { data: event, error: eventError } = await supabaseAdmin
@@ -18,25 +18,25 @@ export async function GET(request, { params }) {
     return Response.json({ error: "Event not found" }, { status: 404 });
   }
 
-  return Response.json({ data: event }, { status: 200 });
+  return Response.json({ event }, { status: 200 });
 }
 
 export async function PATCH(request, { params }) {
   const { id } = await params;
-  const { user, error } = await getUserAuth(request);
+  const { user, error } = await getUserAuth();
   if (error) return Response.json({ error }, { status: 401 });
 
   const body = await request.json();
   const { title, description, location, date, capacity } = body;
-  //if user deletes something and does not add a value
+
   if (!title || !date || !capacity) {
     return Response.json(
-      { error: "Title, Date, and Capacity are reqruied." },
+      { error: "Title, Date, and Capacity are required." },
       { status: 400 },
     );
   }
-  //update the table in supabase
-  const { data: events, error: eventsError } = await supabaseAdmin
+
+  const { data: event, error: eventsError } = await supabaseAdmin
     .from("events")
     .update({ title, description, location, date, capacity })
     .eq("id", id)
@@ -48,13 +48,14 @@ export async function PATCH(request, { params }) {
     return Response.json({ error: eventsError.message }, { status: 500 });
   }
 
-  return Response.json({ data: events }, { status: 200 });
+  return Response.json({ data: event }, { status: 200 });
 }
 
 export async function DELETE(request, { params }) {
   const { id } = await params;
-  const { user, error } = await getUserAuth(request);
+  const { user, error } = await getUserAuth();
   if (error) return Response.json({ error }, { status: 401 });
+
   const { error: deleteError } = await supabaseAdmin
     .from("events")
     .delete()
