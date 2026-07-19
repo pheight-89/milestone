@@ -57,20 +57,27 @@ export default function DashboardEventPage() {
         {events.map((event) => {
           const date = new Date(event.date);
           return (
-            <div key={event.id} className={styles.card}>
-              <h2>{event.title}</h2>
-              <p>{event.description}</p>
-              <p>
-                {date.toLocaleDateString("en-US", {
-                  month: "2-digit",
-                  day: "2-digit",
-                  year: "numeric",
-                })}
-              </p>
-              <p>Capacity: {event.capacity}</p>
-            </div>
+            <Link
+              href={`/dashboard/events/${event.id}`}
+              key={event.id}
+              className={styles.cardLink}
+            >
+              <div className={styles.card}>
+                <h2>{event.title}</h2>
+                <p>{event.description}</p>
+                <p>
+                  {date.toLocaleDateString("en-US", {
+                    month: "2-digit",
+                    day: "2-digit",
+                    year: "numeric",
+                  })}
+                </p>
+                <p>Capacity: {event.capacity}</p>
+              </div>
+            </Link>
           );
         })}
+        npm
         <Link href="/dashboard/events/new">Add New Event</Link>
         <Link href="/dashboard">Return To Dashboard</Link>
       </div>

@@ -26,6 +26,13 @@ export async function PATCH(request, { params }) {
   const { user, error } = await getUserAuth();
   if (error) return Response.json({ error }, { status: 401 });
 
+  if (user.role !== "admin") {
+    return Response.json(
+      { error: "Only admins can edit events" },
+      { status: 403 },
+    );
+  }
+
   const body = await request.json();
   const { title, description, location, date, capacity } = body;
 
@@ -55,6 +62,12 @@ export async function DELETE(request, { params }) {
   const { id } = await params;
   const { user, error } = await getUserAuth();
   if (error) return Response.json({ error }, { status: 401 });
+  if (user.role !== "admin") {
+    return Response.json(
+      { error: "Only admins can delete events" },
+      { status: 403 },
+    );
+  }
 
   const { error: deleteError } = await supabaseAdmin
     .from("events")
