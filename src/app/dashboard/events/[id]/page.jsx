@@ -7,6 +7,7 @@ import styles from "./event-id.module.css";
 export default function EventDetailPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
+  const [user, setUser] = useState(null);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,6 +25,16 @@ export default function EventDetailPage({ params }) {
   useEffect(() => {
     async function fetchEvent() {
       try {
+        const meRes = await fetch("/api/auth/me");
+        const meData = await meRes.json();
+
+        if (!meRes.ok) {
+          router.push("/login");
+          return;
+        }
+
+        setUser(meData.user);
+
         const res = await fetch(`/api/events/${id}`);
         const data = await res.json();
 
@@ -146,21 +157,23 @@ export default function EventDetailPage({ params }) {
         </Link>
         <div className={styles.headerActions}>
           <h1 className={styles.title}>{event.title}</h1>
-          <div className={styles.actions}>
-            <button
-              onClick={() => setEditing(!editing)}
-              className={styles.editButton}
-            >
-              {editing ? "Cancel" : "Edit Event"}
-            </button>
-            <button
-              onClick={handleDelete}
-              className={styles.deleteButton}
-              disabled={deleting}
-            >
-              {deleting ? "Deleting..." : "Delete Event"}
-            </button>
-          </div>
+          {user?.role === "admin" && (
+            <div className={styles.actions}>
+              <button
+                onClick={() => setEditing(!editing)}
+                className={styles.editButton}
+              >
+                {editing ? "Cancel" : "Edit Event"}
+              </button>
+              <button
+                onClick={handleDelete}
+                className={styles.deleteButton}
+                disabled={deleting}
+              >
+                {deleting ? "Deleting..." : "Delete Event"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
