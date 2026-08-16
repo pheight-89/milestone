@@ -107,6 +107,9 @@ export default function DashboardPage() {
           <h2>Welcome to Milestone</h2>
           <p>Your dashboard is ready. Events and rosters coming soon.</p>
           <Link href="/dashboard/events">EVENTS</Link>
+          {user?.role === "admin" && (
+            <Link href="/dashboard/fields">Client Fields</Link>
+          )}
           <div className={styles.meta}>
             <span>Role: {user?.role}</span>
             <span>Organization: {org?.name}</span>

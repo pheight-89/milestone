@@ -17,9 +17,6 @@ export async function POST(request) {
     password,
   });
 
-  console.log("auth data:", JSON.stringify(data));
-  console.log("auth error:", JSON.stringify(error));
-
   if (error) {
     return Response.json({ error: error.message }, { status: 401 });
   }
@@ -30,9 +27,10 @@ export async function POST(request) {
 
   const response = Response.json({ success: true }, { status: 200 });
 
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
   response.headers.set(
     "Set-Cookie",
-    `milestone_token=${data.session.access_token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax; Secure`,
+    `milestone_token=${data.session.access_token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax${secure}`,
   );
 
   return response;

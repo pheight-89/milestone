@@ -1,0 +1,257 @@
+.main {
+  min-height: 100vh;
+  padding: var(--space-8);
+  background: var(--color-gray-100);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  max-width: 900px;
+  margin: 0 auto var(--space-8);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  margin: 0 0 var(--space-1) 0;
+}
+
+.subtitle {
+  color: var(--color-gray-600);
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.backLink {
+  color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.errorBanner {
+  max-width: 900px;
+  margin: 0 auto var(--space-6);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.card {
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-md);
+}
+
+.fieldsListHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.fieldsListHeader h2 {
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+.addButton {
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.addButton:hover {
+  opacity: 0.85;
+}
+
+.addForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  background: var(--color-gray-100);
+  border-radius: var(--radius-md);
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.formField label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.formField input,
+.formField select,
+.formField textarea {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  outline: none;
+  background: var(--color-white);
+  transition: border-color var(--transition);
+}
+
+.formField input:focus,
+.formField select:focus,
+.formField textarea:focus {
+  border-color: var(--color-black);
+}
+
+.checkboxField {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.checkboxField label {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+}
+
+.submitButton {
+  align-self: flex-start;
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.submitButton:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.emptyState {
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+}
+
+.fieldsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.fieldRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.fieldInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.fieldLabel {
+  font-weight: 600;
+}
+
+.typeBadge {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.requiredBadge {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.fieldActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.moveButton {
+  width: 2rem;
+  height: 2rem;
+  background: var(--color-white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  transition: opacity var(--transition);
+}
+
+.moveButton:hover:not(:disabled) {
+  background: var(--color-gray-100);
+}
+
+.moveButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.deleteButton {
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: var(--color-error);
+  color: var(--color-white);
+}
+
+.deleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading {
+  text-align: center;
+  color: var(--color-gray-600);
+  margin-top: var(--space-10);
+}

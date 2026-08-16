@@ -9,9 +9,10 @@ export async function POST(request) {
   }
 
   const response = Response.json({ success: true }, { status: 200 });
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
   response.headers.set(
     "Set-Cookie",
-    "milestone_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax; Secure",
+    `milestone_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax${secure}`,
   );
 
   return response;

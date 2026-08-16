@@ -1,3 +1,38 @@
+:root {
+  --color-black: #000;
+  --color-white: #fff;
+  --color-primary: #000;
+  --color-gray-100: #f9f9f9;
+  --color-gray-500: #999;
+  --color-gray-600: #666;
+  --color-gray-700: #444;
+  --color-error: #b91c1c;
+  --color-error-bg: #fee2e2;
+  --color-error-border: #fecaca;
+  --border-color: #ddd;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-3xl: 1.75rem;
+
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  --shadow-md: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+  --transition: 0.15s;
+}
+
 /* 1. Use a more-intuitive box-sizing model */
 *,
 *::before,

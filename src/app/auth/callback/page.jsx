@@ -10,9 +10,6 @@ export default function AuthCallbackPage() {
     async function handleCallback() {
       const { data, error } = await supabase.auth.getSession();
 
-      console.log("session:", data?.session ? "exists" : "null");
-      console.log("error:", error?.message);
-
       if (error || !data.session) {
         router.push("/login");
         return;
@@ -37,9 +34,6 @@ export default function AuthCallbackPage() {
       const isInvited =
         user.app_metadata?.provider === "email" &&
         !user.user_metadata?.password_set;
-
-      console.log("isInvited:", isInvited);
-      console.log("app_metadata:", JSON.stringify(user.app_metadata));
 
       if (isInvited) {
         router.push("/set-password");
