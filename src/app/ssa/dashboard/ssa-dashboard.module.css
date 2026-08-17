@@ -1,0 +1,328 @@
+.main {
+  min-height: 100vh;
+  padding: var(--space-8);
+  background: var(--color-gray-100);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 900px;
+  margin: 0 auto var(--space-8);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  margin: 0 0 var(--space-1) 0;
+}
+
+.subtitle {
+  color: var(--color-gray-600);
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.logoutButton {
+  padding: var(--space-2) var(--space-5);
+  background: transparent;
+  border: 2px solid var(--color-black);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.logoutButton:hover {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.errorBanner {
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-4);
+}
+
+.card {
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-md);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.cardHeader h2 {
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+.addButton {
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addButton:hover {
+  opacity: 0.85;
+}
+
+.emptyState {
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+}
+
+.addIndividualPanel {
+  background: var(--color-gray-100);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.searchRow {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.searchRow input {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.searchRow button {
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.searchResults {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.searchResult,
+.searchResultSelected {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: var(--color-white);
+}
+
+.searchResultSelected {
+  border-color: var(--color-black);
+  font-weight: 600;
+}
+
+.spanForm {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.spanForm label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  font-weight: 600;
+}
+
+.spanForm input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.spanForm button {
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.caseloadList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.individualCard {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.individualHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-3);
+}
+
+.individualHeader h3 {
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.meta {
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.editButton {
+  padding: var(--space-1) var(--space-4);
+  background: transparent;
+  border: 1px solid var(--color-black);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.editButton:hover {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+.spanDates {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.editSpanForm {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.editSpanForm label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  font-weight: 600;
+}
+
+.editSpanForm input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.editActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.editActions button {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: var(--color-white);
+}
+
+.periods {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.period {
+  background: var(--color-gray-100);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.period h4 {
+  font-size: var(--font-size-sm);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.regTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-2);
+}
+
+.regTable th,
+.regTable td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-color);
+  font-size: var(--font-size-sm);
+}
+
+.regTable th {
+  color: var(--color-gray-600);
+  font-weight: 600;
+}
+
+.statusBadge {
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+.periodTotal {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-gray-700);
+  margin: 0;
+}
+
+.loading {
+  text-align: center;
+  color: var(--color-gray-600);
+  margin-top: var(--space-10);
+}

@@ -1,0 +1,140 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import styles from "./family-dashboard.module.css";
+
+export default function FamilyDashboardPage() {
+  const router = useRouter();
+  const [family, setFamily] = useState(null);
+  const [profiles, setProfiles] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function init() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+
+        if (!res.ok || data.user.user_type !== "family") {
+          router.push("/login");
+          return;
+        }
+
+        setFamily(data.user);
+
+        const profilesRes = await fetch("/api/family/profiles");
+        const profilesData = await profilesRes.json();
+
+        if (profilesRes.ok) {
+          setProfiles(profilesData.profiles);
+        } else {
+          setError(profilesData.error);
+        }
+
+        const registrationsRes = await fetch("/api/family/registrations");
+        const registrationsData = await registrationsRes.json();
+
+        if (registrationsRes.ok) {
+          setRegistrations(registrationsData.registrations);
+        }
+      } catch (err) {
+        router.push("/login");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    init();
+  }, [router]);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+  }
+
+  if (loading) {
+    return (
+      <main className={styles.main}>
+        <p className={styles.loading}>Loading...</p>
+      </main>
+    );
+  }
+
+  return (
+    <main className={styles.main}>
+      <div className={styles.header}>
+        <div>
+          <h1 className={styles.title}>Welcome</h1>
+          <p className={styles.subtitle}>{family?.email}</p>
+        </div>
+        <button onClick={handleLogout} className={styles.logoutButton}>
+          Sign Out
+        </button>
+      </div>
+
+      {error && <div className={styles.errorBanner}>{error}</div>}
+
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <h2>Your People</h2>
+          <Link href="/family/profiles/new" className={styles.addButton}>
+            Add Person
+          </Link>
+        </div>
+
+        {profiles.length === 0 ? (
+          <p className={styles.emptyState}>No profiles yet.</p>
+        ) : (
+          <div className={styles.profilesList}>
+            {profiles.map((profile) => (
+              <div key={profile.id} className={styles.profileRow}>
+                <span className={styles.profileName}>
+                  {profile.first_name} {profile.last_name}
+                </span>
+                <Link
+                  href={`/family/profiles/${profile.id}`}
+                  className={styles.editLink}
+                >
+                  Edit
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className={`${styles.card} ${styles.registrationsCard}`}>
+        <div className={styles.cardHeader}>
+          <h2>Registrations</h2>
+        </div>
+
+        {registrations.length === 0 ? (
+          <p className={styles.emptyState}>No registrations yet.</p>
+        ) : (
+          <div className={styles.registrationsList}>
+            {registrations.map((reg) => {
+              const date = reg.event_date ? new Date(reg.event_date) : null;
+              return (
+                <div key={reg.id} className={styles.registrationRow}>
+                  <div>
+                    <span className={styles.profileName}>
+                      {reg.event_title}
+                    </span>
+                    <span className={styles.registrationMeta}>
+                      {reg.org_name} · {date ? date.toLocaleDateString() : ""}{" "}
+                      · {reg.client_first_name} {reg.client_last_name}
+                    </span>
+                  </div>
+                  <span className={styles.statusBadge}>{reg.status}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}

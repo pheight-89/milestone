@@ -11,7 +11,7 @@ export default function Home() {
           service organizations.
         </p>
         <div className={styles.actions}>
-          <Link href="/signup" className={styles.primaryButton}>
+          <Link href="/get-started" className={styles.primaryButton}>
             Get Started
           </Link>
           <Link href="/login" className={styles.primaryButton}>

@@ -1,0 +1,203 @@
+.main {
+  min-height: 100vh;
+  padding: var(--space-8);
+  background: var(--color-gray-100);
+}
+
+.backLink {
+  display: block;
+  max-width: 700px;
+  margin: 0 auto var(--space-6);
+  color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.loading {
+  text-align: center;
+  color: var(--color-gray-600);
+  margin-top: var(--space-10);
+}
+
+.error {
+  text-align: center;
+  color: var(--color-error);
+  margin-bottom: var(--space-4);
+}
+
+.warning {
+  color: var(--color-error);
+}
+
+.card {
+  max-width: 700px;
+  margin: 0 auto;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-8);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.errorBanner {
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-6);
+  font-size: var(--font-size-sm);
+}
+
+.stepSection h2 {
+  font-size: var(--font-size-lg);
+  margin: 0 0 var(--space-5) 0;
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.checkboxOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-base);
+}
+
+.profileFieldGroup {
+  padding: var(--space-5);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-5);
+}
+
+.profileFieldGroup h3 {
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.confirmNote {
+  background: var(--color-gray-100);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+
+.formField label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.formField input[type="text"],
+.formField input[type="date"],
+.formField select,
+.formField textarea {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  outline: none;
+}
+
+.formField input[type="text"]:focus,
+.formField input[type="date"]:focus,
+.formField select:focus,
+.formField textarea:focus {
+  border-color: var(--color-black);
+}
+
+.reviewGroup {
+  margin-bottom: var(--space-6);
+}
+
+.reviewGroup h3 {
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.reviewItem {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+}
+
+.formActions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  align-items: center;
+}
+
+.primaryButton {
+  padding: var(--space-3) var(--space-6);
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: opacity var(--transition);
+}
+
+.primaryButton:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  padding: var(--space-3) var(--space-6);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: var(--color-gray-100);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryLink {
+  color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.secondaryLink:hover {
+  text-decoration: underline;
+}

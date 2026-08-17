@@ -1,0 +1,70 @@
+.rosterSection {
+  max-width: 900px;
+  margin: var(--space-6) auto 0;
+}
+
+.card {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
+}
+
+.loading {
+  color: var(--color-gray-600);
+}
+
+.emptyState {
+  color: var(--color-gray-500);
+}
+
+.errorBanner {
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.capacityBar {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+}
+
+.capacityBarOver {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+}
+
+.rosterTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rosterTable th,
+.rosterTable td {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+  font-size: var(--font-size-sm);
+}
+
+.rosterTable th {
+  color: var(--color-gray-600);
+  font-weight: 600;
+}
+
+.statusBadge {
+  text-transform: capitalize;
+  font-weight: 600;
+}

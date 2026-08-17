@@ -21,6 +21,9 @@ export default function EventDetailPage({ params }) {
     date: "",
     capacity: "",
   });
+  const [registrations, setRegistrations] = useState([]);
+  const [loadingRoster, setLoadingRoster] = useState(true);
+  const [rosterError, setRosterError] = useState(null);
 
   useEffect(() => {
     async function fetchEvent() {
@@ -62,6 +65,28 @@ export default function EventDetailPage({ params }) {
     }
 
     fetchEvent();
+  }, [id]);
+
+  useEffect(() => {
+    async function fetchRoster() {
+      try {
+        const res = await fetch(`/api/registrations?event_id=${id}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          setRosterError(data.error);
+          return;
+        }
+
+        setRegistrations(data.registrations);
+      } catch (err) {
+        setRosterError("Failed to load roster.");
+      } finally {
+        setLoadingRoster(false);
+      }
+    }
+
+    fetchRoster();
   }, [id]);
 
   function handleChange(e) {
@@ -291,6 +316,65 @@ export default function EventDetailPage({ params }) {
             )}
           </div>
         )}
+      </div>
+
+      <div className={styles.rosterSection}>
+        <div className={styles.card}>
+          <h2>Roster</h2>
+
+          {loadingRoster ? (
+            <p className={styles.loading}>Loading roster...</p>
+          ) : rosterError ? (
+            <div className={styles.errorBanner}>{rosterError}</div>
+          ) : (
+            <>
+              <p
+                className={
+                  registrations.length > event.capacity
+                    ? styles.capacityBarOver
+                    : styles.capacityBar
+                }
+              >
+                {registrations.length} registered / {event.capacity} capacity
+                {registrations.length > event.capacity &&
+                  " — over capacity"}
+              </p>
+
+              {registrations.length === 0 ? (
+                <p className={styles.emptyState}>No registrations yet.</p>
+              ) : (
+                <table className={styles.rosterTable}>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Support Needs</th>
+                      <th>Status</th>
+                      <th>Registered At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {registrations.map((reg) => (
+                      <tr key={reg.id}>
+                        <td>
+                          {reg.first_name} {reg.last_name}
+                        </td>
+                        <td>{reg.support_needs || "—"}</td>
+                        <td>
+                          <span className={styles.statusBadge}>
+                            {reg.status}
+                          </span>
+                        </td>
+                        <td>
+                          {new Date(reg.created_at).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </main>
   );

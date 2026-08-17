@@ -22,25 +22,47 @@ export async function GET(request) {
     );
   }
 
-  const { data: staffRecord, error: staffError } = await supabaseAdmin
+  const { data: staffRecord } = await supabaseAdmin
     .from("org_staff")
-    .select("org_id, role")
+    .select("org_id, role, organizations(org_type)")
     .eq("auth_user_id", user.id)
     .single();
 
-  if (staffError) {
-    return Response.json({ error: "Staff record not found" }, { status: 404 });
+  if (staffRecord) {
+    return Response.json(
+      {
+        user: {
+          id: user.id,
+          email: user.email,
+          user_type: "staff",
+          org_id: staffRecord.org_id,
+          role: staffRecord.role,
+          org_type: staffRecord.organizations?.org_type,
+        },
+      },
+      { status: 200 },
+    );
   }
 
-  return Response.json(
-    {
-      user: {
-        id: user.id,
-        email: user.email,
-        org_id: staffRecord.org_id,
-        role: staffRecord.role,
+  const { data: familyRecord } = await supabaseAdmin
+    .from("family_accounts")
+    .select("id")
+    .eq("auth_user_id", user.id)
+    .single();
+
+  if (familyRecord) {
+    return Response.json(
+      {
+        user: {
+          id: user.id,
+          email: user.email,
+          user_type: "family",
+          family_account_id: familyRecord.id,
+        },
       },
-    },
-    { status: 200 },
-  );
+      { status: 200 },
+    );
+  }
+
+  return Response.json({ error: "Account not found" }, { status: 401 });
 }

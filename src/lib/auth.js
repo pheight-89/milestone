@@ -21,7 +21,7 @@ export async function getUserAuth() {
 
   const { data: staffRecord } = await supabaseAdmin
     .from("org_staff")
-    .select("id, org_id, role")
+    .select("id, org_id, role, organizations(org_type)")
     .eq("auth_user_id", user.id)
     .single();
 
@@ -36,6 +36,37 @@ export async function getUserAuth() {
       staff_id: staffRecord.id,
       org_id: staffRecord.org_id,
       role: staffRecord.role,
+      org_type: staffRecord.organizations?.org_type,
+    },
+    error: null,
+  };
+}
+
+export async function getFamilyAuth() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("milestone_token")?.value;
+
+  if (!token) return { family: null, error: "Not authenticated" };
+
+  const {
+    data: { user },
+    error,
+  } = await supabaseAdmin.auth.getUser(token);
+  if (error || !user) return { family: null, error: "Invalid token" };
+
+  const { data: familyAccount } = await supabaseAdmin
+    .from("family_accounts")
+    .select("id, email")
+    .eq("auth_user_id", user.id)
+    .single();
+
+  if (!familyAccount) return { family: null, error: "Family account not found" };
+
+  return {
+    family: {
+      id: familyAccount.id,
+      email: familyAccount.email,
+      auth_id: user.id,
     },
     error: null,
   };

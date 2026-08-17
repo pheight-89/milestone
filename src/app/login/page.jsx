@@ -45,7 +45,29 @@ function LoginForm() {
         return;
       }
 
-      router.push("/dashboard");
+      const meRes = await fetch("/api/auth/me");
+      const meData = await meRes.json();
+
+      if (!meRes.ok) {
+        setError("Something went wrong. Please try again.");
+        return;
+      }
+
+      if (meData.user.user_type === "family") {
+        router.push("/family/dashboard");
+      } else if (
+        meData.user.org_type === "county_board" &&
+        meData.user.role === "admin"
+      ) {
+        router.push("/county/dashboard");
+      } else if (
+        meData.user.org_type === "county_board" &&
+        meData.user.role === "ssa"
+      ) {
+        router.push("/ssa/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err) {
       setError("Something went wrong. Please try again.");
     } finally {

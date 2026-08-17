@@ -1,0 +1,93 @@
+.main {
+  min-height: 100vh;
+  padding: var(--space-8);
+  background: var(--color-gray-100);
+}
+
+.header {
+  max-width: 900px;
+  margin: 0 auto var(--space-8);
+  text-align: center;
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  margin: 0 0 var(--space-1) 0;
+}
+
+.subtitle {
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.emptyState {
+  max-width: 900px;
+  margin: 0 auto;
+  color: var(--color-gray-500);
+  text-align: center;
+}
+
+.error {
+  text-align: center;
+  color: var(--color-error);
+}
+
+.loading {
+  text-align: center;
+  color: var(--color-gray-600);
+  margin-top: var(--space-10);
+}
+
+.eventsList {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.eventCard {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.eventCard p {
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.eventTitleLink {
+  color: var(--color-black);
+}
+
+.eventTitleLink h2 {
+  font-size: var(--font-size-lg);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.eventTitleLink:hover {
+  text-decoration: underline;
+}
+
+.registerButton {
+  align-self: flex-start;
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-primary);
+  color: var(--color-white);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.registerButton:hover {
+  opacity: 0.85;
+}
