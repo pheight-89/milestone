@@ -2,6 +2,7 @@
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import SearchableSelect from "@/components/SearchableSelect";
 import styles from "./profile-id.module.css";
 
 export default function ProfileDetailPage({ params }) {
@@ -24,6 +25,8 @@ export default function ProfileDetailPage({ params }) {
     allergies: "",
     notes: "",
   });
+  const [counties, setCounties] = useState([]);
+  const [selectedCounty, setSelectedCounty] = useState(null);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -36,12 +39,35 @@ export default function ProfileDetailPage({ params }) {
           return;
         }
 
-        const res = await fetch(`/api/family/profiles/${id}`);
-        const data = await res.json();
+        const [profileRes, countiesRes, allProfilesRes] = await Promise.all([
+          fetch(`/api/family/profiles/${id}`),
+          fetch("/api/counties"),
+          fetch("/api/family/profiles"),
+        ]);
 
-        if (!res.ok) {
+        const data = await profileRes.json();
+
+        if (!profileRes.ok) {
           setError(data.error);
           return;
+        }
+
+        const countiesData = await countiesRes.json();
+        if (countiesRes.ok) {
+          setCounties(
+            countiesData.counties.map((county) => ({
+              id: county.id,
+              label: county.name,
+            })),
+          );
+        }
+
+        const allProfilesData = await allProfilesRes.json();
+        if (allProfilesRes.ok && allProfilesData.family_county_id) {
+          setSelectedCounty({
+            id: allProfilesData.family_county_id,
+            label: allProfilesData.family_county_name,
+          });
         }
 
         setProfile(data.profile);
@@ -93,6 +119,12 @@ export default function ProfileDetailPage({ params }) {
         setError(data.error);
         return;
       }
+
+      await fetch("/api/family/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ county_id: selectedCounty?.id || null }),
+      });
 
       setProfile(data.profile);
       setEditing(false);
@@ -261,6 +293,16 @@ export default function ProfileDetailPage({ params }) {
                   rows={3}
                   value={formData.notes}
                   onChange={handleChange}
+                />
+              </div>
+
+              <div className={styles.formField}>
+                <label>County</label>
+                <SearchableSelect
+                  items={counties}
+                  onSelect={setSelectedCounty}
+                  selected={selectedCounty}
+                  placeholder="Search counties..."
                 />
               </div>
 

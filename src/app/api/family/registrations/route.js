@@ -9,7 +9,7 @@ export async function GET() {
   const { data: registrations, error: regError } = await supabaseAdmin
     .from("registrations")
     .select(
-      "id, status, created_at, event_id, client_profile_id, events(title, date), organizations(name), client_profiles(first_name, last_name)",
+      "id, status, created_at, payment_type, event_id, client_profile_id, events(title, date), organizations(name), client_profiles(first_name, last_name)",
     )
     .eq("family_account_id", family.id)
     .order("created_at", { ascending: false });
@@ -22,6 +22,7 @@ export async function GET() {
     id: r.id,
     status: r.status,
     created_at: r.created_at,
+    payment_type: r.payment_type,
     event_id: r.event_id,
     client_profile_id: r.client_profile_id,
     event_title: r.events?.title,

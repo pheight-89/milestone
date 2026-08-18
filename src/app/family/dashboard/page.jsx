@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import SearchableSelect from "@/components/SearchableSelect";
 import styles from "./family-dashboard.module.css";
 
 export default function FamilyDashboardPage() {
@@ -11,6 +12,37 @@ export default function FamilyDashboardPage() {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [counties, setCounties] = useState([]);
+  const [eventSearch, setEventSearch] = useState("");
+  const [eventCounty, setEventCounty] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [eventsError, setEventsError] = useState(null);
+
+  async function fetchEvents(searchQuery, countyItem) {
+    setLoadingEvents(true);
+    setEventsError(null);
+
+    try {
+      const params = new URLSearchParams();
+      if (countyItem) params.set("county_id", countyItem.id);
+      if (searchQuery) params.set("search", searchQuery);
+
+      const res = await fetch(`/api/public/events?${params.toString()}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        setEvents(data.events);
+      } else {
+        setEventsError(data.error);
+      }
+    } catch (err) {
+      setEventsError("Failed to load events.");
+    } finally {
+      setLoadingEvents(false);
+    }
+  }
 
   useEffect(() => {
     async function init() {
@@ -25,7 +57,13 @@ export default function FamilyDashboardPage() {
 
         setFamily(data.user);
 
-        const profilesRes = await fetch("/api/family/profiles");
+        const [profilesRes, registrationsRes, countiesRes] =
+          await Promise.all([
+            fetch("/api/family/profiles"),
+            fetch("/api/family/registrations"),
+            fetch("/api/counties"),
+          ]);
+
         const profilesData = await profilesRes.json();
 
         if (profilesRes.ok) {
@@ -34,12 +72,33 @@ export default function FamilyDashboardPage() {
           setError(profilesData.error);
         }
 
-        const registrationsRes = await fetch("/api/family/registrations");
         const registrationsData = await registrationsRes.json();
 
         if (registrationsRes.ok) {
           setRegistrations(registrationsData.registrations);
         }
+
+        const countiesData = await countiesRes.json();
+        let initialCounty = null;
+
+        if (countiesRes.ok) {
+          setCounties(
+            countiesData.counties.map((county) => ({
+              id: county.id,
+              label: county.name,
+            })),
+          );
+        }
+
+        if (profilesRes.ok && profilesData.family_county_id) {
+          initialCounty = {
+            id: profilesData.family_county_id,
+            label: profilesData.family_county_name,
+          };
+          setEventCounty(initialCounty);
+        }
+
+        fetchEvents("", initialCounty);
       } catch (err) {
         router.push("/login");
       } finally {
@@ -49,6 +108,16 @@ export default function FamilyDashboardPage() {
 
     init();
   }, [router]);
+
+  function handleEventSearchSubmit(e) {
+    e.preventDefault();
+    fetchEvents(eventSearch, eventCounty);
+  }
+
+  function handleEventCountyChange(item) {
+    setEventCounty(item);
+    fetchEvents(eventSearch, item);
+  }
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -76,6 +145,69 @@ export default function FamilyDashboardPage() {
       </div>
 
       {error && <div className={styles.errorBanner}>{error}</div>}
+
+      <div className={styles.card}>
+        <h2>Find Events</h2>
+
+        <form onSubmit={handleEventSearchSubmit} className={styles.eventSearchRow}>
+          <input
+            type="text"
+            value={eventSearch}
+            onChange={(e) => setEventSearch(e.target.value)}
+            placeholder="Search events..."
+            className={styles.eventSearchInput}
+          />
+          <div className={styles.eventCountySelect}>
+            <SearchableSelect
+              items={counties}
+              onSelect={handleEventCountyChange}
+              selected={eventCounty}
+              placeholder="All counties"
+            />
+          </div>
+          <button type="submit">Search</button>
+        </form>
+
+        <p className={styles.eventsScope}>
+          {eventCounty
+            ? `Showing events in ${eventCounty.label} County`
+            : "Showing all events"}
+        </p>
+
+        {eventsError && <div className={styles.errorBanner}>{eventsError}</div>}
+
+        {loadingEvents ? (
+          <p className={styles.emptyState}>Loading events...</p>
+        ) : events.length === 0 ? (
+          <p className={styles.emptyState}>No upcoming events found.</p>
+        ) : (
+          <div className={styles.eventsList}>
+            {events.map((event) => {
+              const date = new Date(event.date);
+              return (
+                <div key={event.id} className={styles.eventCard}>
+                  <div>
+                    <span className={styles.profileName}>{event.title}</span>
+                    <span className={styles.registrationMeta}>
+                      {event.org_name} · {date.toLocaleDateString()} ·{" "}
+                      {event.location || "TBD"} ·{" "}
+                      {Number(event.cost)
+                        ? `$${Number(event.cost).toFixed(2)}`
+                        : "Free"}
+                    </span>
+                  </div>
+                  <Link
+                    href={`/${event.org_slug}/events/${event.id}`}
+                    className={styles.editLink}
+                  >
+                    View Event
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <div className={styles.card}>
         <div className={styles.cardHeader}>
@@ -128,7 +260,14 @@ export default function FamilyDashboardPage() {
                       · {reg.client_first_name} {reg.client_last_name}
                     </span>
                   </div>
-                  <span className={styles.statusBadge}>{reg.status}</span>
+                  <div className={styles.registrationStatusGroup}>
+                    <span className={styles.statusBadge}>{reg.status}</span>
+                    <span className={styles.paymentTypeLabel}>
+                      {reg.payment_type === "self_pay"
+                        ? "Self Pay"
+                        : "Funded"}
+                    </span>
+                  </div>
                 </div>
               );
             })}

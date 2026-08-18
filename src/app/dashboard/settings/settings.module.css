@@ -1,0 +1,128 @@
+.main {
+  min-height: 100vh;
+  padding: var(--space-8);
+  background: var(--color-gray-100);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 700px;
+  margin: 0 auto var(--space-8);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  margin: 0;
+}
+
+.backLink {
+  color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.errorBanner {
+  max-width: 700px;
+  margin: 0 auto var(--space-6);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.card {
+  max-width: 700px;
+  margin: 0 auto var(--space-6);
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-md);
+}
+
+.card h2 {
+  font-size: var(--font-size-lg);
+  margin: 0 0 var(--space-5) 0;
+}
+
+.readonlyField {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: var(--font-size-sm);
+}
+
+.readonlyField:last-child {
+  border-bottom: none;
+}
+
+.label {
+  color: var(--color-gray-600);
+}
+
+.emptyState {
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.listRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.removeButton {
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.removeButton:hover:not(:disabled) {
+  background: var(--color-error);
+  color: var(--color-white);
+}
+
+.removeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.inlineForm {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-color);
+}
+
+.inlineForm h3 {
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.loading {
+  text-align: center;
+  color: var(--color-gray-600);
+  margin-top: var(--space-10);
+}

@@ -24,7 +24,7 @@ export async function POST(request) {
   if (error) return Response.json({ error }, { status: 401 });
 
   const body = await request.json();
-  const { title, description, location, date, capacity } = body;
+  const { title, description, location, date, capacity, cost } = body;
 
   if (!title || !date || !capacity) {
     return Response.json(
@@ -41,6 +41,7 @@ export async function POST(request) {
       location,
       date,
       capacity,
+      cost: cost || 0,
       org_id: user.org_id,
       created_by: user.staff_id,
     })

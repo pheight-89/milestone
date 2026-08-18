@@ -34,7 +34,7 @@ export async function PATCH(request, { params }) {
   }
 
   const body = await request.json();
-  const { title, description, location, date, capacity } = body;
+  const { title, description, location, date, capacity, cost } = body;
 
   if (!title || !date || !capacity) {
     return Response.json(
@@ -45,7 +45,7 @@ export async function PATCH(request, { params }) {
 
   const { data: event, error: eventsError } = await supabaseAdmin
     .from("events")
-    .update({ title, description, location, date, capacity })
+    .update({ title, description, location, date, capacity, cost: cost || 0 })
     .eq("id", id)
     .eq("org_id", user.org_id)
     .select()

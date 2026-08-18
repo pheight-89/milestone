@@ -60,7 +60,7 @@ export async function GET() {
     const { data: registrations, error: regError } = await supabaseAdmin
       .from("registrations")
       .select(
-        "id, status, client_profile_id, events(title, date, cost), organizations(name)",
+        "id, status, payment_type, client_profile_id, events(title, date, cost), organizations(name)",
       )
       .in("client_profile_id", clientProfileIds)
       .in("org_id", providerOrgIds);
@@ -74,6 +74,7 @@ export async function GET() {
       list.push({
         id: reg.id,
         status: reg.status,
+        payment_type: reg.payment_type,
         event_title: reg.events?.title,
         event_date: reg.events?.date,
         event_cost: reg.events?.cost,

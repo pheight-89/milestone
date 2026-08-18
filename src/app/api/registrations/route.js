@@ -69,8 +69,23 @@ export async function POST(request) {
     .filter((r) => alreadyRegisteredIds.has(r.client_profile_id))
     .map((r) => r.client_profile_id);
 
+  // Requires client_county_associations table — see SQL migration.
+  const { data: orgCounties, error: orgCountiesError } = await supabaseAdmin
+    .from("org_counties")
+    .select("county_id")
+    .eq("org_id", org_id);
+
+  if (orgCountiesError) {
+    return Response.json({ error: orgCountiesError.message }, { status: 500 });
+  }
+
+  const countyIds = [...new Set(orgCounties.map((oc) => oc.county_id))];
+
   for (const reg of validRegistrations) {
     if (alreadyRegisteredIds.has(reg.client_profile_id)) continue;
+
+    const paymentType =
+      reg.payment_type === "self_pay" ? "self_pay" : "funded";
 
     const { data: registration, error: insertError } = await supabaseAdmin
       .from("registrations")
@@ -80,6 +95,7 @@ export async function POST(request) {
         client_profile_id: reg.client_profile_id,
         family_account_id: family.id,
         status: "pending",
+        payment_type: paymentType,
       })
       .select()
       .single();
@@ -103,6 +119,17 @@ export async function POST(request) {
       },
       { onConflict: "client_profile_id,org_id" },
     );
+
+    // Requires client_county_associations table — see SQL migration.
+    if (countyIds.length > 0) {
+      await supabaseAdmin.from("client_county_associations").upsert(
+        countyIds.map((countyId) => ({
+          client_profile_id: reg.client_profile_id,
+          county_id: countyId,
+        })),
+        { onConflict: "client_profile_id,county_id", ignoreDuplicates: true },
+      );
+    }
   }
 
   // TODO: send a "registration pending" email to the family via a
@@ -138,7 +165,7 @@ export async function GET(request) {
   const { data: registrations, error: regError } = await supabaseAdmin
     .from("registrations")
     .select(
-      "id, status, created_at, client_profile_id, client_profiles(first_name, last_name, support_needs, allergies)",
+      "id, status, created_at, payment_type, client_profile_id, client_profiles(first_name, last_name, support_needs, allergies)",
     )
     .eq("event_id", eventId)
     .eq("org_id", user.org_id)
@@ -167,6 +194,7 @@ export async function GET(request) {
     id: r.id,
     status: r.status,
     created_at: r.created_at,
+    payment_type: r.payment_type,
     first_name: r.client_profiles?.first_name,
     last_name: r.client_profiles?.last_name,
     support_needs: r.client_profiles?.support_needs,

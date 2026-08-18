@@ -380,7 +380,11 @@ export default function SsaDashboardPage() {
                         period,
                       );
                       const totalCost = periodRegs
-                        .filter((reg) => reg.status === "confirmed")
+                        .filter(
+                          (reg) =>
+                            reg.status === "confirmed" &&
+                            reg.payment_type !== "self_pay",
+                        )
                         .reduce(
                           (sum, reg) => sum + (Number(reg.event_cost) || 0),
                           0,
@@ -398,16 +402,18 @@ export default function SsaDashboardPage() {
                               <thead>
                                 <tr>
                                   <th>Event</th>
-                                  <th>Date</th>
                                   <th>Org</th>
+                                  <th>Date</th>
                                   <th>Cost</th>
                                   <th>Status</th>
+                                  <th>Payment Type</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {periodRegs.map((reg) => (
                                   <tr key={reg.id}>
                                     <td>{reg.event_title}</td>
+                                    <td>{reg.org_name}</td>
                                     <td>
                                       {reg.event_date
                                         ? new Date(
@@ -415,14 +421,18 @@ export default function SsaDashboardPage() {
                                           ).toLocaleDateString()
                                         : "—"}
                                     </td>
-                                    <td>{reg.org_name}</td>
                                     <td>
-                                      {reg.event_cost
-                                        ? `$${reg.event_cost}`
+                                      {Number(reg.event_cost)
+                                        ? `$${Number(reg.event_cost).toFixed(2)}`
                                         : "Free"}
                                     </td>
                                     <td className={styles.statusBadge}>
                                       {reg.status}
+                                    </td>
+                                    <td>
+                                      {reg.payment_type === "self_pay"
+                                        ? "Self Pay"
+                                        : "Funded"}
                                     </td>
                                   </tr>
                                 ))}
@@ -430,7 +440,7 @@ export default function SsaDashboardPage() {
                             </table>
                           )}
                           <p className={styles.periodTotal}>
-                            Total committed: ${totalCost.toFixed(2)}
+                            Total confirmed (funded): ${totalCost.toFixed(2)}
                           </p>
                         </div>
                       );

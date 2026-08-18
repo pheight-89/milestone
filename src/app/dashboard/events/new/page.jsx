@@ -15,6 +15,7 @@ export default function NewEventPage() {
     location: "",
     date: "",
     capacity: "",
+    cost: "",
   });
 
   useEffect(() => {
@@ -64,6 +65,7 @@ export default function NewEventPage() {
         body: JSON.stringify({
           ...formData,
           capacity: parseInt(formData.capacity),
+          cost: parseFloat(formData.cost) || 0,
         }),
       });
 
@@ -154,6 +156,20 @@ export default function NewEventPage() {
               value={formData.capacity}
               onChange={handleChange}
               required
+            />
+          </div>
+
+          <div className={styles.formField}>
+            <label htmlFor="cost">Event Cost ($)</label>
+            <input
+              type="number"
+              name="cost"
+              id="cost"
+              value={formData.cost}
+              onChange={handleChange}
+              min="0"
+              step="0.01"
+              placeholder="0.00"
             />
           </div>
 

@@ -50,10 +50,6 @@ export async function POST(request) {
   const { user, error } = await getUserAuth();
   if (error) return Response.json({ error }, { status: 401 });
 
-  if (user.org_type !== "county_board" || user.role !== "admin") {
-    return Response.json({ error: "Forbidden" }, { status: 403 });
-  }
-
   const { org_id, county_id } = await request.json();
 
   if (!org_id || !county_id) {
@@ -63,18 +59,41 @@ export async function POST(request) {
     );
   }
 
-  const { data: county, error: countyError } = await supabaseAdmin
-    .from("counties")
-    .select("id")
-    .eq("id", county_id)
-    .eq("county_board_org_id", user.org_id)
-    .single();
+  const isCountyBoardAdmin =
+    user.org_type === "county_board" && user.role === "admin";
+  const isSelfServiceProviderAdmin =
+    user.org_type === "provider" &&
+    user.role === "admin" &&
+    org_id === user.org_id;
 
-  if (countyError || !county) {
-    return Response.json(
-      { error: "County not found for this county board" },
-      { status: 404 },
-    );
+  if (!isCountyBoardAdmin && !isSelfServiceProviderAdmin) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (isCountyBoardAdmin) {
+    const { data: county, error: countyError } = await supabaseAdmin
+      .from("counties")
+      .select("id")
+      .eq("id", county_id)
+      .eq("county_board_org_id", user.org_id)
+      .single();
+
+    if (countyError || !county) {
+      return Response.json(
+        { error: "County not found for this county board" },
+        { status: 404 },
+      );
+    }
+  } else {
+    const { data: county, error: countyError } = await supabaseAdmin
+      .from("counties")
+      .select("id")
+      .eq("id", county_id)
+      .single();
+
+    if (countyError || !county) {
+      return Response.json({ error: "County not found" }, { status: 404 });
+    }
   }
 
   const { data: org, error: orgError } = await supabaseAdmin
@@ -94,14 +113,20 @@ export async function POST(request) {
     );
   }
 
-  const { data: link, error: insertError } = await supabaseAdmin
+  const { data: link, error: linkError } = await supabaseAdmin
     .from("org_counties")
     .insert({ org_id, county_id })
     .select()
     .single();
 
-  if (insertError) {
-    return Response.json({ error: insertError.message }, { status: 500 });
+  if (linkError) {
+    if (linkError.code === "23505") {
+      return Response.json(
+        { error: "This organization is already linked to that county" },
+        { status: 409 },
+      );
+    }
+    return Response.json({ error: linkError.message }, { status: 500 });
   }
 
   return Response.json({ link }, { status: 201 });

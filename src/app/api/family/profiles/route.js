@@ -16,7 +16,20 @@ export async function GET() {
     return Response.json({ error: profilesError.message }, { status: 500 });
   }
 
-  return Response.json({ profiles }, { status: 200 });
+  const { data: familyAccount } = await supabaseAdmin
+    .from("family_accounts")
+    .select("county_id, counties(name)")
+    .eq("id", family.id)
+    .single();
+
+  return Response.json(
+    {
+      profiles,
+      family_county_id: familyAccount?.county_id || null,
+      family_county_name: familyAccount?.counties?.name || null,
+    },
+    { status: 200 },
+  );
 }
 
 export async function POST(request) {

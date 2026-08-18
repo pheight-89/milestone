@@ -32,13 +32,17 @@ export async function GET() {
       return Response.json({ error: orgCountiesError.message }, { status: 500 });
     }
 
-    orgs = orgCounties.map((oc) => ({
-      link_id: oc.id,
-      org_id: oc.organizations?.id,
-      org_name: oc.organizations?.name,
-      org_slug: oc.organizations?.slug,
-      county_id: oc.county_id,
-    }));
+    orgs = orgCounties.map((oc) => {
+      const county = counties.find((c) => c.id === oc.county_id);
+      return {
+        link_id: oc.id,
+        org_id: oc.organizations?.id,
+        org_name: oc.organizations?.name,
+        org_slug: oc.organizations?.slug,
+        county_id: oc.county_id,
+        county_name: county?.name,
+      };
+    });
   }
 
   const { data: ssas, error: ssasError } = await supabaseAdmin

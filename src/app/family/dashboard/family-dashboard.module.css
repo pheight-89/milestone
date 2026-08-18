@@ -160,3 +160,71 @@
   font-weight: 600;
   color: var(--color-gray-700);
 }
+
+.card h2 {
+  font-size: var(--font-size-lg);
+  margin: 0 0 var(--space-5) 0;
+}
+
+.eventSearchRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  margin-bottom: var(--space-4);
+}
+
+.eventSearchInput {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.eventCountySelect {
+  flex: 1;
+}
+
+.eventSearchRow button {
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.eventsScope {
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.eventsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.eventCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.registrationStatusGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+.paymentTypeLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}

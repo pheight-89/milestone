@@ -110,6 +110,7 @@ export default function DashboardPage() {
           {user?.role === "admin" && (
             <Link href="/dashboard/fields">Client Fields</Link>
           )}
+          <Link href="/dashboard/settings">Settings</Link>
           <div className={styles.meta}>
             <span>Role: {user?.role}</span>
             <span>Organization: {org?.name}</span>

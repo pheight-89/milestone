@@ -117,7 +117,11 @@ export default function PublicEventDetailPage({ params }) {
           </div>
           <div className={styles.detailItem}>
             <span className={styles.label}>Cost</span>
-            <span>{event.cost ? `$${event.cost}` : "Free"}</span>
+            <span>
+              {Number(event.cost)
+                ? `$${Number(event.cost).toFixed(2)}`
+                : "Free"}
+            </span>
           </div>
         </div>
 

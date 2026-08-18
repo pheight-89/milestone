@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import SearchableSelect from "@/components/SearchableSelect";
 import styles from "./new-profile.module.css";
 
 export default function NewProfilePage() {
@@ -21,6 +22,8 @@ export default function NewProfilePage() {
     allergies: "",
     notes: "",
   });
+  const [counties, setCounties] = useState([]);
+  const [selectedCounty, setSelectedCounty] = useState(null);
 
   useEffect(() => {
     async function checkAuth() {
@@ -31,6 +34,26 @@ export default function NewProfilePage() {
         if (!res.ok || data.user.user_type !== "family") {
           router.push("/login");
           return;
+        }
+
+        const countiesRes = await fetch("/api/counties");
+        const countiesData = await countiesRes.json();
+        if (countiesRes.ok) {
+          setCounties(
+            countiesData.counties.map((county) => ({
+              id: county.id,
+              label: county.name,
+            })),
+          );
+        }
+
+        const profilesRes = await fetch("/api/family/profiles");
+        const profilesData = await profilesRes.json();
+        if (profilesRes.ok && profilesData.family_county_id) {
+          setSelectedCounty({
+            id: profilesData.family_county_id,
+            label: profilesData.family_county_name,
+          });
         }
       } catch (err) {
         router.push("/login");
@@ -67,6 +90,12 @@ export default function NewProfilePage() {
         setError(data.error);
         return;
       }
+
+      await fetch("/api/family/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ county_id: selectedCounty?.id || null }),
+      });
 
       router.push("/family/dashboard");
     } catch (err) {
@@ -212,6 +241,16 @@ export default function NewProfilePage() {
               rows={3}
               value={formData.notes}
               onChange={handleChange}
+            />
+          </div>
+
+          <div className={styles.formField}>
+            <label>County</label>
+            <SearchableSelect
+              items={counties}
+              onSelect={setSelectedCounty}
+              selected={selectedCounty}
+              placeholder="Search counties..."
             />
           </div>
 

@@ -3,6 +3,7 @@
   --color-white: #fff;
   --color-primary: #000;
   --color-gray-100: #f9f9f9;
+  --color-gray-200: #e5e5e5;
   --color-gray-500: #999;
   --color-gray-600: #666;
   --color-gray-700: #444;
@@ -25,6 +26,7 @@
   --font-size-lg: 1.25rem;
   --font-size-3xl: 1.75rem;
 
+  --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
 

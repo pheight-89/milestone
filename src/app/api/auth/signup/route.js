@@ -4,7 +4,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(request) {
   const body = await request.json();
-  const { orgName, email, password } = body;
+  const { orgName, email, password, county_ids } = body;
 
   if (!orgName || !email || !password) {
     return Response.json(
@@ -52,6 +52,13 @@ export async function POST(request) {
 
   if (staffError) {
     return Response.json({ error: staffError.message }, { status: 400 });
+  }
+
+  if (Array.isArray(county_ids) && county_ids.length > 0) {
+    // Best-effort: county linking failures shouldn't fail the whole signup.
+    await supabaseAdmin
+      .from("org_counties")
+      .insert(county_ids.map((countyId) => ({ org_id: org.id, county_id: countyId })));
   }
 
   return Response.json({ success: true, org }, { status: 200 });

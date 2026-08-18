@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import SearchableMultiSelect from "@/components/SearchableMultiSelect";
 import styles from "./signup.module.css";
 
 export default function SignupPage() {
@@ -12,9 +13,32 @@ export default function SignupPage() {
     password: "",
     confirmPassword: "",
   });
+  const [counties, setCounties] = useState([]);
+  const [selectedCounties, setSelectedCounties] = useState([]);
 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadCounties() {
+      try {
+        const res = await fetch("/api/counties");
+        const data = await res.json();
+        if (res.ok) {
+          setCounties(
+            data.counties.map((county) => ({
+              id: county.id,
+              label: county.name,
+            })),
+          );
+        }
+      } catch (err) {
+        // County selection is optional — silently skip if this fails.
+      }
+    }
+
+    loadCounties();
+  }, []);
 
   function handleChange(e) {
     setFormData((prev) => ({
@@ -47,6 +71,7 @@ export default function SignupPage() {
           orgName: formData.orgName,
           email: formData.email,
           password: formData.password,
+          county_ids: selectedCounties.map((county) => county.id),
         }),
       });
 
@@ -85,6 +110,16 @@ export default function SignupPage() {
               onChange={handleChange}
               placeholder="Enter your organization name"
               required
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label>Counties (optional)</label>
+            <SearchableMultiSelect
+              items={counties}
+              onChange={setSelectedCounties}
+              selected={selectedCounties}
+              placeholder="Search counties..."
             />
           </div>
 

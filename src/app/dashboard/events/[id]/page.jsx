@@ -20,6 +20,7 @@ export default function EventDetailPage({ params }) {
     location: "",
     date: "",
     capacity: "",
+    cost: "",
   });
   const [registrations, setRegistrations] = useState([]);
   const [loadingRoster, setLoadingRoster] = useState(true);
@@ -56,6 +57,7 @@ export default function EventDetailPage({ params }) {
             ? new Date(data.event.date).toISOString().split("T")[0]
             : "",
           capacity: data.event.capacity || "",
+          cost: data.event.cost || 0,
         });
       } catch (err) {
         setError("Failed to load event.");
@@ -108,6 +110,7 @@ export default function EventDetailPage({ params }) {
         body: JSON.stringify({
           ...formData,
           capacity: parseInt(formData.capacity),
+          cost: parseFloat(formData.cost) || 0,
         }),
       });
 
@@ -267,6 +270,20 @@ export default function EventDetailPage({ params }) {
                 />
               </div>
 
+              <div className={styles.formField}>
+                <label htmlFor="cost">Event Cost ($)</label>
+                <input
+                  type="number"
+                  id="cost"
+                  name="cost"
+                  value={formData.cost}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                />
+              </div>
+
               <div className={styles.formActions}>
                 <button
                   type="submit"
@@ -310,6 +327,14 @@ export default function EventDetailPage({ params }) {
                 <span className={styles.label}>Capacity</span>
                 <span>{event.capacity} seats</span>
               </div>
+              <div className={styles.detailItem}>
+                <span className={styles.label}>Cost</span>
+                <span>
+                  {Number(event.cost)
+                    ? `$${Number(event.cost).toFixed(2)}`
+                    : "Free"}
+                </span>
+              </div>
             </div>
             {event.description && (
               <p className={styles.description}>{event.description}</p>
@@ -349,6 +374,7 @@ export default function EventDetailPage({ params }) {
                       <th>Name</th>
                       <th>Support Needs</th>
                       <th>Status</th>
+                      <th>Payment Type</th>
                       <th>Registered At</th>
                     </tr>
                   </thead>
@@ -363,6 +389,15 @@ export default function EventDetailPage({ params }) {
                           <span className={styles.statusBadge}>
                             {reg.status}
                           </span>
+                        </td>
+                        <td>
+                          {reg.payment_type === "self_pay" ? (
+                            <span className={styles.selfPayBadge}>
+                              Self Pay
+                            </span>
+                          ) : (
+                            "Funded"
+                          )}
                         </td>
                         <td>
                           {new Date(reg.created_at).toLocaleDateString()}

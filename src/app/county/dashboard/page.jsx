@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import SearchableSelect from "@/components/SearchableSelect";
 import styles from "./county-dashboard.module.css";
 
 export default function CountyDashboardPage() {
@@ -13,7 +14,8 @@ export default function CountyDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [addOrgSlug, setAddOrgSlug] = useState("");
+  const [providerOrgs, setProviderOrgs] = useState([]);
+  const [selectedOrg, setSelectedOrg] = useState(null);
   const [addOrgCountyId, setAddOrgCountyId] = useState("");
   const [addingOrg, setAddingOrg] = useState(false);
   const [addOrgError, setAddOrgError] = useState(null);
@@ -42,7 +44,10 @@ export default function CountyDashboardPage() {
 
         setUser(data.user);
 
-        const dashRes = await fetch("/api/county/dashboard");
+        const [dashRes, providerOrgsRes] = await Promise.all([
+          fetch("/api/county/dashboard"),
+          fetch("/api/county/provider-orgs"),
+        ]);
         const dashData = await dashRes.json();
 
         if (dashRes.ok) {
@@ -56,6 +61,16 @@ export default function CountyDashboardPage() {
         } else {
           setError(dashData.error);
         }
+
+        const providerOrgsData = await providerOrgsRes.json();
+        if (providerOrgsRes.ok) {
+          setProviderOrgs(
+            providerOrgsData.orgs.map((org) => ({
+              id: org.id,
+              label: org.name,
+            })),
+          );
+        }
       } catch (err) {
         router.push("/login");
       } finally {
@@ -66,25 +81,16 @@ export default function CountyDashboardPage() {
     init();
   }, [router]);
 
-  async function handleAddOrg(e) {
-    e.preventDefault();
+  async function handleLinkOrg() {
     setAddOrgError(null);
     setAddingOrg(true);
 
     try {
-      const orgRes = await fetch(`/api/public/orgs/${addOrgSlug.trim()}`);
-      const orgData = await orgRes.json();
-
-      if (!orgRes.ok) {
-        setAddOrgError("Organization not found for that slug.");
-        return;
-      }
-
       const linkRes = await fetch("/api/county/orgs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          org_id: orgData.org.id,
+          org_id: selectedOrg.id,
           county_id: addOrgCountyId,
         }),
       });
@@ -101,14 +107,13 @@ export default function CountyDashboardPage() {
         ...prev,
         {
           link_id: linkData.link.id,
-          org_id: orgData.org.id,
-          org_name: orgData.org.name,
-          org_slug: orgData.org.slug,
+          org_id: selectedOrg.id,
+          org_name: selectedOrg.label,
           county_id: addOrgCountyId,
           county_name: county?.name,
         },
       ]);
-      setAddOrgSlug("");
+      setSelectedOrg(null);
     } catch (err) {
       setAddOrgError("Something went wrong. Please try again.");
     } finally {
@@ -240,13 +245,12 @@ export default function CountyDashboardPage() {
           {addOrgError && (
             <div className={styles.errorBanner}>{addOrgError}</div>
           )}
-          <form onSubmit={handleAddOrg} className={styles.formRow}>
-            <input
-              type="text"
-              value={addOrgSlug}
-              onChange={(e) => setAddOrgSlug(e.target.value)}
-              placeholder="organization-slug"
-              required
+          <div className={styles.formRow}>
+            <SearchableSelect
+              items={providerOrgs}
+              onSelect={setSelectedOrg}
+              selected={selectedOrg}
+              placeholder="Search provider orgs..."
             />
             <select
               value={addOrgCountyId}
@@ -259,10 +263,16 @@ export default function CountyDashboardPage() {
                 </option>
               ))}
             </select>
-            <button type="submit" disabled={addingOrg}>
-              {addingOrg ? "Adding..." : "Add Provider Org"}
-            </button>
-          </form>
+            {selectedOrg && addOrgCountyId && (
+              <button
+                type="button"
+                onClick={handleLinkOrg}
+                disabled={addingOrg}
+              >
+                {addingOrg ? "Linking..." : "Link Org"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

@@ -124,6 +124,7 @@ export default function RegisterPage({ params }) {
         nextFormValues[profileId] = {
           values: { ...blank, ...(existing || {}) },
           hadExisting: !!existing,
+          paymentType: "funded",
         };
       }
 
@@ -143,6 +144,13 @@ export default function RegisterPage({ params }) {
         ...prev[profileId],
         values: { ...prev[profileId].values, [fieldKey]: value },
       },
+    }));
+  }
+
+  function handlePaymentTypeChange(profileId, paymentType) {
+    setFormValues((prev) => ({
+      ...prev,
+      [profileId]: { ...prev[profileId], paymentType },
     }));
   }
 
@@ -204,6 +212,7 @@ export default function RegisterPage({ params }) {
           registrations: selectedIds.map((profileId) => ({
             client_profile_id: profileId,
             custom_values: formValues[profileId].values,
+            payment_type: formValues[profileId].paymentType,
           })),
         }),
       });
@@ -415,24 +424,55 @@ export default function RegisterPage({ params }) {
           <div className={styles.stepSection}>
             <h2>Step 2: Additional Information</h2>
 
-            {fieldDefs.length === 0 ? (
-              <p>No additional information needed.</p>
-            ) : (
-              selectedIds.map((profileId) => {
-                const profile = profiles.find((p) => p.id === profileId);
-                const hadExisting = formValues[profileId]?.hadExisting;
+            {selectedIds.map((profileId) => {
+              const profile = profiles.find((p) => p.id === profileId);
+              const hadExisting = formValues[profileId]?.hadExisting;
 
-                return (
-                  <div key={profileId} className={styles.profileFieldGroup}>
-                    <h3>
-                      {profile.first_name} {profile.last_name}
-                    </h3>
-                    {hadExisting && (
-                      <p className={styles.confirmNote}>
-                        Please confirm your information is correct.
-                      </p>
-                    )}
-                    {fieldDefs.map((field) => (
+              return (
+                <div key={profileId} className={styles.profileFieldGroup}>
+                  <h3>
+                    {profile.first_name} {profile.last_name}
+                  </h3>
+                  {hadExisting && (
+                    <p className={styles.confirmNote}>
+                      Please confirm your information is correct.
+                    </p>
+                  )}
+                  <div className={styles.formField}>
+                    <label>Payment Type</label>
+                    <div className={styles.checkboxGroup}>
+                      <label className={styles.checkboxOption}>
+                        <input
+                          type="radio"
+                          name={`payment-type-${profileId}`}
+                          checked={
+                            formValues[profileId].paymentType === "funded"
+                          }
+                          onChange={() =>
+                            handlePaymentTypeChange(profileId, "funded")
+                          }
+                        />
+                        Funded (through authorization)
+                      </label>
+                      <label className={styles.checkboxOption}>
+                        <input
+                          type="radio"
+                          name={`payment-type-${profileId}`}
+                          checked={
+                            formValues[profileId].paymentType === "self_pay"
+                          }
+                          onChange={() =>
+                            handlePaymentTypeChange(profileId, "self_pay")
+                          }
+                        />
+                        Self Pay
+                      </label>
+                    </div>
+                  </div>
+                  {fieldDefs.length === 0 ? (
+                    <p>No additional information needed.</p>
+                  ) : (
+                    fieldDefs.map((field) => (
                       <div key={field.id} className={styles.formField}>
                         <label>
                           {field.label}
@@ -440,11 +480,11 @@ export default function RegisterPage({ params }) {
                         </label>
                         {renderField(profileId, field)}
                       </div>
-                    ))}
-                  </div>
-                );
-              })
-            )}
+                    ))
+                  )}
+                </div>
+              );
+            })}
 
             <div className={styles.formActions}>
               <button
@@ -478,6 +518,12 @@ export default function RegisterPage({ params }) {
                   <h3>
                     {profile.first_name} {profile.last_name}
                   </h3>
+                  <p className={styles.reviewItem}>
+                    <strong>Payment Type:</strong>{" "}
+                    {formValues[profileId].paymentType === "self_pay"
+                      ? "Self Pay"
+                      : "Funded (through authorization)"}
+                  </p>
                   {fieldDefs.length === 0 ? (
                     <p className={styles.reviewItem}>
                       No additional information required.
