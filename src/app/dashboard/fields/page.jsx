@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import styles from "./fields.module.css";
 
 const FIELD_TYPE_LABELS = {
@@ -210,9 +209,6 @@ export default function ClientFieldsPage() {
             Define what information you collect on client profiles.
           </p>
         </div>
-        <Link href="/dashboard" className={styles.backLink}>
-          ← Back to Dashboard
-        </Link>
       </div>
 
       {error && <div className={styles.errorBanner}>{error}</div>}

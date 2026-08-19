@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import SearchableSelect from "@/components/SearchableSelect";
 import styles from "./new-profile.module.css";
 
@@ -117,9 +116,6 @@ export default function NewProfilePage() {
     <main className={styles.main}>
       <div className={styles.header}>
         <h1 className={styles.title}>Add a Person</h1>
-        <Link href="/family/dashboard" className={styles.backLink}>
-          ← Back to Dashboard
-        </Link>
       </div>
 
       {error && <div className={styles.errorBanner}>{error}</div>}

@@ -78,7 +78,6 @@ export default function DashboardEventPage() {
           );
         })}
         <Link href="/dashboard/events/new">Add New Event</Link>
-        <Link href="/dashboard">Return To Dashboard</Link>
       </div>
     </main>
   );

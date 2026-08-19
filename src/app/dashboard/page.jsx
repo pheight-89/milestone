@@ -77,11 +77,6 @@ export default function DashboardPage() {
       setInviting(false);
     }
   }
-  async function handleLogout() {
-    await fetch("api/auth/logout", { method: "POST" });
-    router.push("/login");
-  }
-
   if (loading) {
     return (
       <main className={styles.main}>
@@ -97,9 +92,6 @@ export default function DashboardPage() {
           <h1 className={styles.title}>Dashboard</h1>
           <p className={styles.orgName}>{user?.email}</p>
         </div>
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          Sign Out
-        </button>
       </div>
 
       <div className={styles.content}>

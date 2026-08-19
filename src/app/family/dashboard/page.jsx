@@ -119,11 +119,6 @@ export default function FamilyDashboardPage() {
     fetchEvents(eventSearch, item);
   }
 
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-  }
-
   if (loading) {
     return (
       <main className={styles.main}>
@@ -139,14 +134,11 @@ export default function FamilyDashboardPage() {
           <h1 className={styles.title}>Welcome</h1>
           <p className={styles.subtitle}>{family?.email}</p>
         </div>
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          Sign Out
-        </button>
       </div>
 
       {error && <div className={styles.errorBanner}>{error}</div>}
 
-      <div className={styles.card}>
+      <div id="events" className={styles.card}>
         <h2>Find Events</h2>
 
         <form onSubmit={handleEventSearchSubmit} className={styles.eventSearchRow}>
@@ -209,7 +201,7 @@ export default function FamilyDashboardPage() {
         )}
       </div>
 
-      <div className={styles.card}>
+      <div id="profiles" className={styles.card}>
         <div className={styles.cardHeader}>
           <h2>Your People</h2>
           <Link href="/family/profiles/new" className={styles.addButton}>

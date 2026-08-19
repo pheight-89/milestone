@@ -177,3 +177,98 @@
   color: var(--color-gray-600);
   margin-top: var(--space-10);
 }
+
+.codesTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-6);
+}
+
+.codesTable th,
+.codesTable td {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+  font-size: var(--font-size-sm);
+}
+
+.codesTable th {
+  color: var(--color-gray-600);
+  font-weight: 600;
+}
+
+.addonBadge {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.activeBadge {
+  color: var(--color-gray-700);
+  font-weight: 600;
+}
+
+.inactiveBadge {
+  color: var(--color-gray-500);
+  font-weight: 600;
+}
+
+.codeActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.codeActions button {
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.codeActions button:hover {
+  background: var(--color-gray-100);
+}
+
+.editCodeForm {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.editCodeForm input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.editCodeForm button {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.codeReadOnly {
+  font-weight: 600;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-gray-100);
+  border-radius: var(--radius-md);
+}
+
+.addonCheckbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+}

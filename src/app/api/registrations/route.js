@@ -130,6 +130,49 @@ export async function POST(request) {
         { onConflict: "client_profile_id,county_id", ignoreDuplicates: true },
       );
     }
+
+    // Resolve billing codes for this registration (skipped for self-pay,
+    // since self-pay is billed directly to the family, not authorized
+    // through a county board rate).
+    if (paymentType !== "self_pay") {
+      const { data: eventCodes } = await supabaseAdmin
+        .from("event_billing_codes")
+        .select("code, is_addon")
+        .eq("event_id", event_id);
+
+      const { data: countyAssoc } = await supabaseAdmin
+        .from("client_county_associations")
+        .select("county_id, counties(county_board_org_id)")
+        .eq("client_profile_id", reg.client_profile_id)
+        .limit(1)
+        .maybeSingle();
+
+      if (eventCodes?.length && countyAssoc?.counties?.county_board_org_id) {
+        const countyBoardOrgId = countyAssoc.counties.county_board_org_id;
+
+        for (const eventCode of eventCodes) {
+          const { data: billingCode } = await supabaseAdmin
+            .from("county_billing_codes")
+            .select("id, description, rate")
+            .eq("county_board_org_id", countyBoardOrgId)
+            .eq("code", eventCode.code)
+            .eq("active", true)
+            .limit(1)
+            .maybeSingle();
+
+          if (billingCode) {
+            await supabaseAdmin.from("registration_billing").insert({
+              registration_id: registration.id,
+              county_billing_code_id: billingCode.id,
+              code: eventCode.code,
+              description: billingCode.description,
+              rate: billingCode.rate,
+              is_addon: eventCode.is_addon,
+            });
+          }
+        }
+      }
+    }
   }
 
   // TODO: send a "registration pending" email to the family via a

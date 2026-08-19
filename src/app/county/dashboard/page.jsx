@@ -26,6 +26,21 @@ export default function CountyDashboardPage() {
   const [inviteError, setInviteError] = useState(null);
   const [inviteSuccess, setInviteSuccess] = useState(false);
 
+  const [billingCodes, setBillingCodes] = useState([]);
+  const [editingCodeId, setEditingCodeId] = useState(null);
+  const [editDescription, setEditDescription] = useState("");
+  const [editRate, setEditRate] = useState("");
+  const [editIsAddon, setEditIsAddon] = useState(false);
+  const [savingCode, setSavingCode] = useState(false);
+  const [codeError, setCodeError] = useState(null);
+
+  const [newCode, setNewCode] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newRate, setNewRate] = useState("");
+  const [newIsAddon, setNewIsAddon] = useState(false);
+  const [addingCode, setAddingCode] = useState(false);
+  const [addCodeError, setAddCodeError] = useState(null);
+
   useEffect(() => {
     async function init() {
       try {
@@ -44,9 +59,10 @@ export default function CountyDashboardPage() {
 
         setUser(data.user);
 
-        const [dashRes, providerOrgsRes] = await Promise.all([
+        const [dashRes, providerOrgsRes, billingCodesRes] = await Promise.all([
           fetch("/api/county/dashboard"),
           fetch("/api/county/provider-orgs"),
+          fetch("/api/billing-codes"),
         ]);
         const dashData = await dashRes.json();
 
@@ -70,6 +86,11 @@ export default function CountyDashboardPage() {
               label: org.name,
             })),
           );
+        }
+
+        const billingCodesData = await billingCodesRes.json();
+        if (billingCodesRes.ok) {
+          setBillingCodes(billingCodesData.codes);
         }
       } catch (err) {
         router.push("/login");
@@ -176,9 +197,104 @@ export default function CountyDashboardPage() {
     }
   }
 
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
+  async function handleAddCode(e) {
+    e.preventDefault();
+    setAddCodeError(null);
+    setAddingCode(true);
+
+    try {
+      const res = await fetch("/api/billing-codes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: newCode.toUpperCase(),
+          description: newDescription,
+          rate: parseFloat(newRate),
+          is_addon: newIsAddon,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setAddCodeError(data.error);
+        return;
+      }
+
+      setBillingCodes((prev) => [...prev, data.billing_code]);
+      setNewCode("");
+      setNewDescription("");
+      setNewRate("");
+      setNewIsAddon(false);
+    } catch (err) {
+      setAddCodeError("Something went wrong. Please try again.");
+    } finally {
+      setAddingCode(false);
+    }
+  }
+
+  function startEditCode(code) {
+    setEditingCodeId(code.id);
+    setEditDescription(code.description);
+    setEditRate(code.rate);
+    setEditIsAddon(code.is_addon);
+    setCodeError(null);
+  }
+
+  async function handleSaveCode(codeId) {
+    setSavingCode(true);
+    setCodeError(null);
+
+    try {
+      const res = await fetch(`/api/billing-codes/${codeId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: editDescription,
+          rate: parseFloat(editRate),
+          is_addon: editIsAddon,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setCodeError(data.error);
+        return;
+      }
+
+      setBillingCodes((prev) =>
+        prev.map((c) => (c.id === codeId ? data.billing_code : c)),
+      );
+      setEditingCodeId(null);
+    } catch (err) {
+      setCodeError("Failed to save changes.");
+    } finally {
+      setSavingCode(false);
+    }
+  }
+
+  async function handleToggleActive(code) {
+    try {
+      const res = await fetch(`/api/billing-codes/${code.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !code.active }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setCodeError(data.error);
+        return;
+      }
+
+      setBillingCodes((prev) =>
+        prev.map((c) => (c.id === code.id ? data.billing_code : c)),
+      );
+    } catch (err) {
+      setCodeError("Failed to update status.");
+    }
   }
 
   if (loading) {
@@ -196,9 +312,6 @@ export default function CountyDashboardPage() {
           <h1 className={styles.title}>County Board Dashboard</h1>
           <p className={styles.subtitle}>{user?.email}</p>
         </div>
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          Sign Out
-        </button>
       </div>
 
       {error && <div className={styles.errorBanner}>{error}</div>}
@@ -213,7 +326,7 @@ export default function CountyDashboardPage() {
         </div>
       </div>
 
-      <div className={styles.card}>
+      <div id="provider-orgs" className={styles.card}>
         <h2>Provider Organizations</h2>
 
         {orgs.length === 0 ? (
@@ -276,7 +389,167 @@ export default function CountyDashboardPage() {
         </div>
       </div>
 
-      <div className={styles.card}>
+      <div id="billing-codes" className={styles.card}>
+        <h2>Billing Codes</h2>
+
+        {codeError && <div className={styles.errorBanner}>{codeError}</div>}
+
+        {billingCodes.length === 0 ? (
+          <p className={styles.emptyState}>No billing codes yet.</p>
+        ) : (
+          <table className={styles.codesTable}>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Description</th>
+                <th>Rate</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {billingCodes.map((code) =>
+                editingCodeId === code.id ? (
+                  <tr key={code.id}>
+                    <td colSpan={6}>
+                      <div className={styles.editCodeForm}>
+                        <span className={styles.codeReadOnly}>
+                          {code.code}
+                        </span>
+                        <input
+                          type="text"
+                          value={editDescription}
+                          onChange={(e) =>
+                            setEditDescription(e.target.value)
+                          }
+                          placeholder="Description"
+                          required
+                        />
+                        <input
+                          type="number"
+                          value={editRate}
+                          onChange={(e) => setEditRate(e.target.value)}
+                          min="0.01"
+                          step="0.01"
+                          required
+                        />
+                        <label className={styles.addonCheckbox}>
+                          <input
+                            type="checkbox"
+                            checked={editIsAddon}
+                            onChange={(e) =>
+                              setEditIsAddon(e.target.checked)
+                            }
+                          />
+                          Add-on
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => handleSaveCode(code.id)}
+                          disabled={savingCode}
+                        >
+                          {savingCode ? "Saving..." : "Save"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingCodeId(null)}
+                          disabled={savingCode}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={code.id}>
+                    <td>{code.code}</td>
+                    <td>{code.description}</td>
+                    <td>${Number(code.rate).toFixed(2)}</td>
+                    <td>
+                      {code.is_addon && (
+                        <span className={styles.addonBadge}>Add-on</span>
+                      )}
+                    </td>
+                    <td>
+                      <span
+                        className={
+                          code.active
+                            ? styles.activeBadge
+                            : styles.inactiveBadge
+                        }
+                      >
+                        {code.active ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td>
+                      <div className={styles.codeActions}>
+                        <button
+                          type="button"
+                          onClick={() => startEditCode(code)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(code)}
+                        >
+                          {code.active ? "Deactivate" : "Activate"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ),
+              )}
+            </tbody>
+          </table>
+        )}
+
+        <div className={styles.inlineForm}>
+          <h3>Add Code</h3>
+          {addCodeError && (
+            <div className={styles.errorBanner}>{addCodeError}</div>
+          )}
+          <form onSubmit={handleAddCode} className={styles.formRow}>
+            <input
+              type="text"
+              value={newCode}
+              onChange={(e) => setNewCode(e.target.value.toUpperCase())}
+              placeholder="Code (e.g. CMP1)"
+              required
+            />
+            <input
+              type="text"
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              placeholder="Description"
+              required
+            />
+            <input
+              type="number"
+              value={newRate}
+              onChange={(e) => setNewRate(e.target.value)}
+              placeholder="Rate"
+              min="0.01"
+              step="0.01"
+              required
+            />
+            <label className={styles.addonCheckbox}>
+              <input
+                type="checkbox"
+                checked={newIsAddon}
+                onChange={(e) => setNewIsAddon(e.target.checked)}
+              />
+              Add-on
+            </label>
+            <button type="submit" disabled={addingCode}>
+              {addingCode ? "Saving..." : "Save"}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div id="team" className={styles.card}>
         <h2>SSAs</h2>
 
         {ssas.length === 0 ? (

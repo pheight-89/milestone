@@ -43,6 +43,20 @@ export default function SsaDashboardPage() {
   const [addingIndividual, setAddingIndividual] = useState(false);
   const [addError, setAddError] = useState(null);
 
+  const [expandedRegIds, setExpandedRegIds] = useState(new Set());
+
+  function toggleExpanded(regId) {
+    setExpandedRegIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(regId)) {
+        next.delete(regId);
+      } else {
+        next.add(regId);
+      }
+      return next;
+    });
+  }
+
   async function loadCaseload() {
     const res = await fetch("/api/ssa/caseload");
     const data = await res.json();
@@ -185,9 +199,103 @@ export default function SsaDashboardPage() {
     }
   }
 
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
+  function renderRegistrationRow(reg) {
+    const expanded = expandedRegIds.has(reg.id);
+    const hasBilling = reg.billing_codes && reg.billing_codes.length > 0;
+
+    return (
+      <div key={reg.id} className={styles.regRow}>
+        <button
+          type="button"
+          className={styles.regRowHeader}
+          onClick={() => toggleExpanded(reg.id)}
+        >
+          <span>{reg.event_title}</span>
+          <span>{expanded ? "▲" : "▼"}</span>
+        </button>
+        {expanded && (
+          <div className={styles.regRowDetail}>
+            <p>Event: {reg.event_title}</p>
+            <p>Org: {reg.org_name}</p>
+            <p>
+              Date:{" "}
+              {reg.event_date
+                ? new Date(reg.event_date).toLocaleDateString()
+                : "—"}
+            </p>
+            <p>
+              Status: {reg.status} |{" "}
+              {reg.payment_type === "self_pay" ? "Self Pay" : "Funded"}
+            </p>
+
+            {hasBilling ? (
+              <div className={styles.billingBreakdown}>
+                <p className={styles.billingLabel}>Billing:</p>
+                {reg.billing_codes.map((code) => (
+                  <p key={code.code} className={styles.billingLine}>
+                    {code.code} — {code.description}
+                    {code.is_addon ? " (add-on)" : ""}: $
+                    {Number(code.rate).toFixed(2)}
+                  </p>
+                ))}
+                <p className={styles.billingTotal}>
+                  Event Total: ${Number(reg.billing_total).toFixed(2)}
+                </p>
+              </div>
+            ) : (
+              <p className={styles.selfPayLine}>
+                Self Pay: ${Number(reg.event_cost || 0).toFixed(2)}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderPane(label, regs) {
+    const billedRegs = regs.filter(
+      (reg) => reg.billing_codes && reg.billing_codes.length > 0,
+    );
+    const paneTotal = billedRegs.reduce(
+      (sum, reg) => sum + Number(reg.billing_total),
+      0,
+    );
+
+    const totalsByOrg = new Map();
+    for (const reg of billedRegs) {
+      totalsByOrg.set(
+        reg.org_name,
+        (totalsByOrg.get(reg.org_name) || 0) + Number(reg.billing_total),
+      );
+    }
+
+    return (
+      <div className={styles.pane}>
+        <h5>
+          {label} ({regs.length})
+        </h5>
+        {regs.length === 0 ? (
+          <p className={styles.emptyState}>None.</p>
+        ) : (
+          <div className={styles.paneRegList}>
+            {regs.map((reg) => renderRegistrationRow(reg))}
+          </div>
+        )}
+        {totalsByOrg.size > 0 && (
+          <div className={styles.orgTotals}>
+            {[...totalsByOrg.entries()].map(([orgName, total]) => (
+              <p key={orgName} className={styles.orgTotal}>
+                {orgName} Total: ${total.toFixed(2)}
+              </p>
+            ))}
+          </div>
+        )}
+        <p className={styles.paneTotal}>
+          {label} Total: ${paneTotal.toFixed(2)}
+        </p>
+      </div>
+    );
   }
 
   if (loading) {
@@ -205,9 +313,6 @@ export default function SsaDashboardPage() {
           <h1 className={styles.title}>{user?.email}</h1>
           <p className={styles.subtitle}>{orgName}</p>
         </div>
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          Sign Out
-        </button>
       </div>
 
       {error && <div className={styles.errorBanner}>{error}</div>}
@@ -379,16 +484,12 @@ export default function SsaDashboardPage() {
                         entry.registrations,
                         period,
                       );
-                      const totalCost = periodRegs
-                        .filter(
-                          (reg) =>
-                            reg.status === "confirmed" &&
-                            reg.payment_type !== "self_pay",
-                        )
-                        .reduce(
-                          (sum, reg) => sum + (Number(reg.event_cost) || 0),
-                          0,
-                        );
+                      const confirmedRegs = periodRegs.filter(
+                        (reg) => reg.status === "confirmed",
+                      );
+                      const pendingRegs = periodRegs.filter(
+                        (reg) => reg.status === "pending",
+                      );
 
                       return (
                         <div key={period.label} className={styles.period}>
@@ -398,50 +499,11 @@ export default function SsaDashboardPage() {
                               No events registered in this period.
                             </p>
                           ) : (
-                            <table className={styles.regTable}>
-                              <thead>
-                                <tr>
-                                  <th>Event</th>
-                                  <th>Org</th>
-                                  <th>Date</th>
-                                  <th>Cost</th>
-                                  <th>Status</th>
-                                  <th>Payment Type</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {periodRegs.map((reg) => (
-                                  <tr key={reg.id}>
-                                    <td>{reg.event_title}</td>
-                                    <td>{reg.org_name}</td>
-                                    <td>
-                                      {reg.event_date
-                                        ? new Date(
-                                            reg.event_date,
-                                          ).toLocaleDateString()
-                                        : "—"}
-                                    </td>
-                                    <td>
-                                      {Number(reg.event_cost)
-                                        ? `$${Number(reg.event_cost).toFixed(2)}`
-                                        : "Free"}
-                                    </td>
-                                    <td className={styles.statusBadge}>
-                                      {reg.status}
-                                    </td>
-                                    <td>
-                                      {reg.payment_type === "self_pay"
-                                        ? "Self Pay"
-                                        : "Funded"}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                            <>
+                              {renderPane("Confirmed", confirmedRegs)}
+                              {renderPane("Pending", pendingRegs)}
+                            </>
                           )}
-                          <p className={styles.periodTotal}>
-                            Total confirmed (funded): ${totalCost.toFixed(2)}
-                          </p>
                         </div>
                       );
                     })}

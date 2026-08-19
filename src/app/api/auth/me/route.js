@@ -2,12 +2,20 @@ import "server-only";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { cookies } from "next/headers";
 
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate",
+  Pragma: "no-cache",
+};
+
 export async function GET(request) {
   const cookieStore = await cookies();
   const token = cookieStore.get("milestone_token")?.value;
 
   if (!token) {
-    return Response.json({ error: "Not authenticated" }, { status: 401 });
+    return Response.json(
+      { error: "Not authenticated" },
+      { status: 401, headers: NO_CACHE_HEADERS },
+    );
   }
 
   const {
@@ -18,7 +26,7 @@ export async function GET(request) {
   if (error || !user) {
     return Response.json(
       { error: "Invalid or expired token" },
-      { status: 401 },
+      { status: 401, headers: NO_CACHE_HEADERS },
     );
   }
 
@@ -40,7 +48,7 @@ export async function GET(request) {
           org_type: staffRecord.organizations?.org_type,
         },
       },
-      { status: 200 },
+      { status: 200, headers: NO_CACHE_HEADERS },
     );
   }
 
@@ -60,9 +68,12 @@ export async function GET(request) {
           family_account_id: familyRecord.id,
         },
       },
-      { status: 200 },
+      { status: 200, headers: NO_CACHE_HEADERS },
     );
   }
 
-  return Response.json({ error: "Account not found" }, { status: 401 });
+  return Response.json(
+    { error: "Account not found" },
+    { status: 401, headers: NO_CACHE_HEADERS },
+  );
 }

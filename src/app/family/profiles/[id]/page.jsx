@@ -1,7 +1,6 @@
 "use client";
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import SearchableSelect from "@/components/SearchableSelect";
 import styles from "./profile-id.module.css";
 
@@ -147,7 +146,6 @@ export default function ProfileDetailPage({ params }) {
     return (
       <main className={styles.main}>
         <p className={styles.error}>{error}</p>
-        <Link href="/family/dashboard">Back to Dashboard</Link>
       </main>
     );
   }
@@ -155,9 +153,6 @@ export default function ProfileDetailPage({ params }) {
   return (
     <main className={styles.main}>
       <div className={styles.header}>
-        <Link href="/family/dashboard" className={styles.backLink}>
-          ← Back to Dashboard
-        </Link>
         <div className={styles.headerActions}>
           <h1 className={styles.title}>
             {profile.first_name} {profile.last_name}

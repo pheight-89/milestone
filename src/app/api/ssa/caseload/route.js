@@ -69,7 +69,29 @@ export async function GET() {
       return Response.json({ error: regError.message }, { status: 500 });
     }
 
+    const registrationIds = (registrations || []).map((reg) => reg.id);
+    const billingByRegistration = new Map();
+
+    if (registrationIds.length > 0) {
+      const { data: billingRows } = await supabaseAdmin
+        .from("registration_billing")
+        .select("registration_id, code, description, rate, is_addon")
+        .in("registration_id", registrationIds);
+
+      for (const row of billingRows || []) {
+        const list = billingByRegistration.get(row.registration_id) || [];
+        list.push({
+          code: row.code,
+          description: row.description,
+          rate: row.rate,
+          is_addon: row.is_addon,
+        });
+        billingByRegistration.set(row.registration_id, list);
+      }
+    }
+
     for (const reg of registrations || []) {
+      const billing = billingByRegistration.get(reg.id) || [];
       const list = registrationsByClient.get(reg.client_profile_id) || [];
       list.push({
         id: reg.id,
@@ -79,6 +101,8 @@ export async function GET() {
         event_date: reg.events?.date,
         event_cost: reg.events?.cost,
         org_name: reg.organizations?.name,
+        billing_codes: billing,
+        billing_total: billing.reduce((sum, b) => sum + Number(b.rate), 0),
       });
       registrationsByClient.set(reg.client_profile_id, list);
     }

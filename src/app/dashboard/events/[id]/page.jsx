@@ -2,6 +2,7 @@
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import SearchableSelect from "@/components/SearchableSelect";
 import styles from "./event-id.module.css";
 
 export default function EventDetailPage({ params }) {
@@ -25,6 +26,14 @@ export default function EventDetailPage({ params }) {
   const [registrations, setRegistrations] = useState([]);
   const [loadingRoster, setLoadingRoster] = useState(true);
   const [rosterError, setRosterError] = useState(null);
+
+  const [eventBillingCodes, setEventBillingCodes] = useState([]);
+  const [availableBillingCodes, setAvailableBillingCodes] = useState([]);
+  const [loadingBillingCodes, setLoadingBillingCodes] = useState(true);
+  const [billingCodesError, setBillingCodesError] = useState(null);
+  const [selectedBillingCode, setSelectedBillingCode] = useState(null);
+  const [newCodeIsAddon, setNewCodeIsAddon] = useState(false);
+  const [addingBillingCode, setAddingBillingCode] = useState(false);
 
   useEffect(() => {
     async function fetchEvent() {
@@ -90,6 +99,102 @@ export default function EventDetailPage({ params }) {
 
     fetchRoster();
   }, [id]);
+
+  useEffect(() => {
+    async function fetchBillingCodes() {
+      if (!user || user.org_type !== "provider") {
+        setLoadingBillingCodes(false);
+        return;
+      }
+
+      try {
+        const [linkedRes, availableRes] = await Promise.all([
+          fetch(`/api/events/${id}/billing-codes`),
+          fetch("/api/billing-codes"),
+        ]);
+
+        const linkedData = await linkedRes.json();
+        if (linkedRes.ok) {
+          setEventBillingCodes(linkedData.codes);
+        } else {
+          setBillingCodesError(linkedData.error);
+        }
+
+        const availableData = await availableRes.json();
+        if (availableRes.ok) {
+          setAvailableBillingCodes(
+            availableData.codes.map((code) => ({
+              id: code.code,
+              label: `${code.code} — ${code.description} ($${Number(code.rate).toFixed(2)})`,
+            })),
+          );
+        }
+      } catch (err) {
+        setBillingCodesError("Failed to load billing codes.");
+      } finally {
+        setLoadingBillingCodes(false);
+      }
+    }
+
+    fetchBillingCodes();
+  }, [id, user]);
+
+  async function handleAddBillingCode() {
+    if (!selectedBillingCode) return;
+
+    setBillingCodesError(null);
+    setAddingBillingCode(true);
+
+    try {
+      const res = await fetch(`/api/events/${id}/billing-codes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: selectedBillingCode.id,
+          is_addon: newCodeIsAddon,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setBillingCodesError(data.error);
+        return;
+      }
+
+      const linkedRes = await fetch(`/api/events/${id}/billing-codes`);
+      const linkedData = await linkedRes.json();
+      if (linkedRes.ok) setEventBillingCodes(linkedData.codes);
+
+      setSelectedBillingCode(null);
+      setNewCodeIsAddon(false);
+    } catch (err) {
+      setBillingCodesError("Something went wrong. Please try again.");
+    } finally {
+      setAddingBillingCode(false);
+    }
+  }
+
+  async function handleRemoveBillingCode(codeId) {
+    setBillingCodesError(null);
+
+    try {
+      const res = await fetch(
+        `/api/events/${id}/billing-codes/${codeId}`,
+        { method: "DELETE" },
+      );
+
+      if (!res.ok) {
+        const data = await res.json();
+        setBillingCodesError(data.error);
+        return;
+      }
+
+      setEventBillingCodes((prev) => prev.filter((c) => c.id !== codeId));
+    } catch (err) {
+      setBillingCodesError("Failed to remove billing code.");
+    }
+  }
 
   function handleChange(e) {
     setFormData((prev) => ({
@@ -282,6 +387,15 @@ export default function EventDetailPage({ params }) {
                   step="0.01"
                   placeholder="0.00"
                 />
+                {eventBillingCodes.length > 0 && (
+                  <p className={styles.helperText}>
+                    Private pay price (minimum: $
+                    {eventBillingCodes
+                      .reduce((sum, c) => sum + Number(c.rate), 0)
+                      .toFixed(2)}{" "}
+                    based on billing codes)
+                  </p>
+                )}
               </div>
 
               <div className={styles.formActions}>
@@ -342,6 +456,103 @@ export default function EventDetailPage({ params }) {
           </div>
         )}
       </div>
+
+      {user?.org_type === "provider" && (
+        <div className={styles.rosterSection}>
+          <div className={styles.card}>
+            <h2>Billing Codes</h2>
+
+            {billingCodesError && (
+              <div className={styles.errorBanner}>{billingCodesError}</div>
+            )}
+
+            {loadingBillingCodes ? (
+              <p className={styles.loading}>Loading billing codes...</p>
+            ) : eventBillingCodes.length === 0 ? (
+              <p className={styles.emptyState}>
+                No billing codes linked. Add one below.
+              </p>
+            ) : (
+              <table className={styles.rosterTable}>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Description</th>
+                    <th>Rate</th>
+                    <th>Type</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {eventBillingCodes.map((code) => (
+                    <tr key={code.id}>
+                      <td>{code.code}</td>
+                      <td>{code.description || "—"}</td>
+                      <td>${Number(code.rate).toFixed(2)}</td>
+                      <td>
+                        {code.is_addon && (
+                          <span className={styles.addonBadge}>Add-on</span>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveBillingCode(code.id)}
+                          className={styles.removeCodeButton}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            {eventBillingCodes.length > 0 && (
+              <p className={styles.fundedTotal}>
+                Total funded cost: $
+                {eventBillingCodes
+                  .reduce((sum, c) => sum + Number(c.rate), 0)
+                  .toFixed(2)}
+                <br />
+                <span className={styles.helperText}>
+                  Private pay price must be at least this amount
+                </span>
+              </p>
+            )}
+
+            <div className={styles.inlineForm}>
+              <h3>Add Billing Code</h3>
+              <div className={styles.formRow}>
+                <SearchableSelect
+                  items={availableBillingCodes}
+                  onSelect={setSelectedBillingCode}
+                  selected={selectedBillingCode}
+                  placeholder="Search billing codes..."
+                />
+                <label className={styles.addonCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={newCodeIsAddon}
+                    onChange={(e) => setNewCodeIsAddon(e.target.checked)}
+                  />
+                  Add-on
+                </label>
+                {selectedBillingCode && (
+                  <button
+                    type="button"
+                    onClick={handleAddBillingCode}
+                    disabled={addingBillingCode}
+                  >
+                    {addingBillingCode ? "Adding..." : "Add"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className={styles.rosterSection}>
         <div className={styles.card}>

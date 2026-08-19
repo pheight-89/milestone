@@ -79,3 +79,84 @@
   font-size: var(--font-size-sm);
   font-weight: 600;
 }
+
+.helperText {
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+  margin: var(--space-1) 0 0 0;
+}
+
+.fundedTotal {
+  font-weight: 600;
+  margin: var(--space-4) 0;
+}
+
+.addonBadge {
+  display: inline-block;
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.removeCodeButton {
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.removeCodeButton:hover {
+  background: var(--color-error);
+  color: var(--color-white);
+}
+
+.addonCheckbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+}
+
+.inlineForm {
+  padding-top: var(--space-5);
+  margin-top: var(--space-5);
+  border-top: 1px solid var(--border-color);
+}
+
+.inlineForm h3 {
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.formRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.formRow button {
+  padding: var(--space-2) var(--space-5);
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.formRow button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.formRow button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
