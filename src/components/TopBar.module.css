@@ -1,0 +1,41 @@
+.topBar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 240px;
+  height: 56px;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 var(--space-6);
+  z-index: 50;
+  transition: left 0.2s ease;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.email {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+}
+
+.signOutButton {
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.signOutButton:hover {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-500);
+}

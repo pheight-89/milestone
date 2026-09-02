@@ -208,7 +208,7 @@ export async function GET(request) {
   const { data: registrations, error: regError } = await supabaseAdmin
     .from("registrations")
     .select(
-      "id, status, created_at, payment_type, client_profile_id, client_profiles(first_name, last_name, support_needs, allergies)",
+      "id, status, created_at, payment_type, staff_notes, override_reason, is_over_capacity_override, decided_by, decided_at, client_profile_id, client_profiles(first_name, last_name, date_of_birth, primary_phone, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, support_needs, allergies, notes)",
     )
     .eq("event_id", eventId)
     .eq("org_id", user.org_id)
@@ -218,7 +218,27 @@ export async function GET(request) {
     return Response.json({ error: regError.message }, { status: 500 });
   }
 
+  const registrationIds = registrations.map((r) => r.id);
   const clientProfileIds = registrations.map((r) => r.client_profile_id);
+
+  let billingByRegistration = new Map();
+  if (registrationIds.length > 0) {
+    const { data: billingRows, error: billingError } = await supabaseAdmin
+      .from("registration_billing")
+      .select("id, registration_id, code, description, rate, is_addon")
+      .in("registration_id", registrationIds);
+
+    if (billingError) {
+      return Response.json({ error: billingError.message }, { status: 500 });
+    }
+
+    for (const row of billingRows || []) {
+      const list = billingByRegistration.get(row.registration_id) || [];
+      list.push(row);
+      billingByRegistration.set(row.registration_id, list);
+    }
+  }
+
   let customValuesByProfile = new Map();
 
   if (clientProfileIds.length > 0) {
@@ -233,17 +253,39 @@ export async function GET(request) {
     );
   }
 
-  const data = registrations.map((r) => ({
-    id: r.id,
-    status: r.status,
-    created_at: r.created_at,
-    payment_type: r.payment_type,
-    first_name: r.client_profiles?.first_name,
-    last_name: r.client_profiles?.last_name,
-    support_needs: r.client_profiles?.support_needs,
-    allergies: r.client_profiles?.allergies,
-    custom_values: customValuesByProfile.get(r.client_profile_id) || {},
-  }));
+  const data = registrations.map((r) => {
+    const billingCodes = billingByRegistration.get(r.id) || [];
+    const billingTotal = billingCodes.reduce(
+      (sum, code) => sum + Number(code.rate),
+      0,
+    );
+
+    return {
+      id: r.id,
+      status: r.status,
+      created_at: r.created_at,
+      payment_type: r.payment_type,
+      staff_notes: r.staff_notes,
+      override_reason: r.override_reason,
+      is_over_capacity_override: r.is_over_capacity_override,
+      decided_by: r.decided_by,
+      decided_at: r.decided_at,
+      first_name: r.client_profiles?.first_name,
+      last_name: r.client_profiles?.last_name,
+      date_of_birth: r.client_profiles?.date_of_birth,
+      primary_phone: r.client_profiles?.primary_phone,
+      emergency_contact_name: r.client_profiles?.emergency_contact_name,
+      emergency_contact_phone: r.client_profiles?.emergency_contact_phone,
+      emergency_contact_relationship:
+        r.client_profiles?.emergency_contact_relationship,
+      support_needs: r.client_profiles?.support_needs,
+      allergies: r.client_profiles?.allergies,
+      notes: r.client_profiles?.notes,
+      custom_values: customValuesByProfile.get(r.client_profile_id) || {},
+      billing_codes: billingCodes,
+      billing_total: billingTotal,
+    };
+  });
 
   return Response.json({ registrations: data }, { status: 200 });
 }

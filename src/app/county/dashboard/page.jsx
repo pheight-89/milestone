@@ -316,13 +316,21 @@ export default function CountyDashboardPage() {
 
       {error && <div className={styles.errorBanner}>{error}</div>}
 
-      <div className={styles.card}>
-        <h2>Overview</h2>
-        <div className={styles.statsRow}>
-          <span>{counties.length} counties</span>
-          <span>{orgs.length} provider orgs</span>
-          <span>{ssas.length} SSAs</span>
-          <span>{totalCaseload} total caseload</span>
+      <div className={styles.widgetGrid}>
+        <div className={styles.widgetCard}>
+          <span className={styles.widgetNumber}>{ssas.length}</span>
+          <span className={styles.widgetLabel}>active</span>
+          <span className={styles.widgetTitle}>SSAs</span>
+        </div>
+        <div className={styles.widgetCard}>
+          <span className={styles.widgetNumber}>{orgs.length}</span>
+          <span className={styles.widgetLabel}>in county</span>
+          <span className={styles.widgetTitle}>Provider Orgs</span>
+        </div>
+        <div className={styles.widgetCard}>
+          <span className={styles.widgetNumber}>{totalCaseload}</span>
+          <span className={styles.widgetLabel}>individuals</span>
+          <span className={styles.widgetTitle}>Total Caseload</span>
         </div>
       </div>
 

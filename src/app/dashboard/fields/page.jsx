@@ -213,6 +213,27 @@ export default function ClientFieldsPage() {
 
       {error && <div className={styles.errorBanner}>{error}</div>}
 
+      <div className={styles.defaultFieldsNote}>
+        <h3>Default Fields (always collected)</h3>
+        <p>
+          The following information is automatically collected from every
+          client profile:
+        </p>
+        <ul>
+          <li>First Name & Last Name</li>
+          <li>Date of Birth</li>
+          <li>Primary Phone</li>
+          <li>Emergency Contact Name, Phone & Relationship</li>
+          <li>Support Needs</li>
+          <li>Allergies</li>
+          <li>Notes</li>
+        </ul>
+        <p>
+          Use the fields below to collect additional information specific to
+          your organization.
+        </p>
+      </div>
+
       <div className={styles.card}>
         <div className={styles.fieldsListHeader}>
           <h2>Fields</h2>

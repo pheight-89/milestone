@@ -9,7 +9,7 @@
   justify-content: space-between;
   align-items: center;
   max-width: 900px;
-  margin: 0 auto var(--space-8);
+  margin: 0 auto var(--space-6);
   padding-bottom: var(--space-6);
   border-bottom: 1px solid var(--border-color);
 }
@@ -26,22 +26,6 @@
   font-size: var(--font-size-sm);
 }
 
-.logoutButton {
-  padding: var(--space-2) var(--space-5);
-  background: transparent;
-  border: 2px solid var(--color-black);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition);
-}
-
-.logoutButton:hover {
-  background: var(--color-black);
-  color: var(--color-white);
-}
-
 .errorBanner {
   max-width: 900px;
   margin: 0 auto var(--space-6);
@@ -53,13 +37,56 @@
   font-size: var(--font-size-sm);
 }
 
+.widgetGrid {
+  max-width: 900px;
+  margin: 0 auto var(--space-6);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.widgetCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.widgetNumber {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+}
+
+.widgetLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
+
+.widgetTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-gray-700);
+  margin-top: var(--space-2);
+}
+
 .card {
   max-width: 900px;
-  margin: 0 auto;
+  margin: 0 auto var(--space-6);
   background: var(--color-white);
   border-radius: var(--radius-lg);
   padding: var(--space-8);
   box-shadow: var(--shadow-md);
+}
+
+.card h2 {
+  font-size: var(--font-size-lg);
+  margin: 0;
 }
 
 .cardHeader {
@@ -67,11 +94,6 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-6);
-}
-
-.cardHeader h2 {
-  font-size: var(--font-size-lg);
-  margin: 0;
 }
 
 .addButton {
@@ -94,43 +116,23 @@
   font-size: var(--font-size-sm);
 }
 
-.profilesList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.profileRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-4);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-}
-
-.profileName {
-  font-weight: 600;
-}
-
-.editLink {
-  color: var(--color-gray-700);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-}
-
-.editLink:hover {
-  text-decoration: underline;
-}
-
 .loading {
   text-align: center;
   color: var(--color-gray-600);
   margin-top: var(--space-10);
 }
 
-.registrationsCard {
-  margin-top: var(--space-6);
+/* Registered events, grouped by client */
+
+.registrationGroups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.registrationGroupTitle {
+  font-size: var(--font-size-base);
+  margin: 0 0 var(--space-3) 0;
 }
 
 .registrationsList {
@@ -146,6 +148,12 @@
   padding: var(--space-4);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
+  color: inherit;
+  text-decoration: none;
+}
+
+.registrationRow:hover {
+  background: var(--color-gray-100);
 }
 
 .registrationMeta {
@@ -153,68 +161,6 @@
   color: var(--color-gray-600);
   font-size: var(--font-size-sm);
   margin-top: var(--space-1);
-}
-
-.statusBadge {
-  text-transform: capitalize;
-  font-weight: 600;
-  color: var(--color-gray-700);
-}
-
-.card h2 {
-  font-size: var(--font-size-lg);
-  margin: 0 0 var(--space-5) 0;
-}
-
-.eventSearchRow {
-  display: flex;
-  gap: var(--space-3);
-  align-items: center;
-  margin-bottom: var(--space-4);
-}
-
-.eventSearchInput {
-  flex: 1;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-}
-
-.eventCountySelect {
-  flex: 1;
-}
-
-.eventSearchRow button {
-  padding: var(--space-2) var(--space-5);
-  background: var(--color-primary);
-  color: var(--color-white);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.eventsScope {
-  color: var(--color-gray-600);
-  font-size: var(--font-size-sm);
-  margin: 0 0 var(--space-4) 0;
-}
-
-.eventsList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.eventCard {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-4);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
 }
 
 .registrationStatusGroup {
@@ -227,4 +173,69 @@
 .paymentTypeLabel {
   font-size: var(--font-size-sm);
   color: var(--color-gray-500);
+}
+
+.statusPending,
+.statusConfirmed,
+.statusDeclined {
+  display: inline-block;
+  text-transform: capitalize;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.statusPending {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.statusConfirmed {
+  background: var(--color-success-bg);
+  border: 1px solid var(--color-success-border);
+  color: var(--color-success);
+}
+
+.statusDeclined {
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+}
+
+/* Profile cards */
+
+.profileCardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+.profileCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.profileName {
+  font-weight: 600;
+}
+
+.profileDob {
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+}
+
+.editLink {
+  color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin-top: var(--space-2);
+}
+
+.editLink:hover {
+  text-decoration: underline;
 }

@@ -9,6 +9,11 @@ export default function DashboardPage() {
   const [user, setUser] = useState(null);
   const [org, setOrg] = useState(null);
   const [staff, setStaff] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [registrationSummary, setRegistrationSummary] = useState({
+    pending_count: 0,
+    confirmed_count: 0,
+  });
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("staff");
   const [inviting, setInviting] = useState(false);
@@ -35,7 +40,18 @@ export default function DashboardPage() {
           setOrg(orgData.org);
         }
 
-        const teamRes = await fetch("/api/team");
+        const [eventsRes, registrationsRes, teamRes] = await Promise.all([
+          fetch("/api/events"),
+          fetch(`/api/registrations/summary?org_id=${data.user.org_id}`),
+          fetch("/api/team"),
+        ]);
+
+        const eventsData = await eventsRes.json();
+        if (eventsRes.ok) setEvents(eventsData.data);
+
+        const registrationsData = await registrationsRes.json();
+        if (registrationsRes.ok) setRegistrationSummary(registrationsData);
+
         const teamData = await teamRes.json();
         if (teamRes.ok) setStaff(teamData.staff);
       } catch (err) {
@@ -85,24 +101,78 @@ export default function DashboardPage() {
     );
   }
 
+  const now = new Date();
+  const upcomingEvents = events
+    .filter((event) => new Date(event.date) >= now)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  const nextEvent = upcomingEvents[0] || null;
+
   return (
     <main className={styles.main}>
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Dashboard</h1>
-          <p className={styles.orgName}>{user?.email}</p>
+          <p className={styles.orgName}>{org?.name}</p>
         </div>
       </div>
 
       <div className={styles.content}>
+        <div className={styles.widgetGrid}>
+          <div className={styles.widgetCard}>
+            <span className={styles.widgetNumber}>
+              {upcomingEvents.length}
+            </span>
+            <span className={styles.widgetLabel}>events ahead</span>
+            <span className={styles.widgetTitle}>Upcoming Events</span>
+          </div>
+          <div className={styles.widgetCard}>
+            <span className={styles.widgetNumber}>
+              {registrationSummary.pending_count}
+            </span>
+            <span className={styles.widgetLabel}>need action</span>
+            <span className={styles.widgetTitle}>Pending Reviews</span>
+          </div>
+          <div className={styles.widgetCard}>
+            <span className={styles.widgetNumber}>
+              {registrationSummary.confirmed_count}
+            </span>
+            <span className={styles.widgetLabel}>registrations</span>
+            <span className={styles.widgetTitle}>Confirmed</span>
+          </div>
+          <div className={styles.widgetCard}>
+            <span className={styles.widgetNumber}>{staff.length}</span>
+            <span className={styles.widgetLabel}>staff accounts</span>
+            <span className={styles.widgetTitle}>Team Members</span>
+          </div>
+        </div>
+
+        {nextEvent && (
+          <div className={styles.nextEventCard}>
+            <h3>Next Event</h3>
+            <p>
+              <Link href={`/dashboard/events/${nextEvent.id}`}>
+                {nextEvent.title}
+              </Link>{" "}
+              —{" "}
+              {new Date(nextEvent.date).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+              {nextEvent.location && ` | ${nextEvent.location}`}
+            </p>
+          </div>
+        )}
+
         <div className={styles.card}>
-          <h2>Welcome to Milestone</h2>
-          <p>Your dashboard is ready. Events and rosters coming soon.</p>
-          <Link href="/dashboard/events">EVENTS</Link>
-          {user?.role === "admin" && (
-            <Link href="/dashboard/fields">Client Fields</Link>
-          )}
-          <Link href="/dashboard/settings">Settings</Link>
+          <h2>Quick Links</h2>
+          <div className={styles.linksRow}>
+            <Link href="/dashboard/events">Events</Link>
+            {user?.role === "admin" && (
+              <Link href="/dashboard/fields">Client Fields</Link>
+            )}
+            <Link href="/dashboard/settings">Settings</Link>
+          </div>
           <div className={styles.meta}>
             <span>Role: {user?.role}</span>
             <span>Organization: {org?.name}</span>

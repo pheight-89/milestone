@@ -1,23 +1,17 @@
 "use client";
 import { useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import styles from "./NavDrawer.module.css";
 
 export default function NavDrawer({ user, userType, onCollapse }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
 
   function handleToggle() {
     const next = !collapsed;
     setCollapsed(next);
     onCollapse?.(next);
-  }
-
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
   }
 
   const links = getNavLinks(user, userType);
@@ -50,16 +44,6 @@ export default function NavDrawer({ user, userType, onCollapse }) {
           </li>
         ))}
       </ul>
-
-      <div className={styles.footer}>
-        {!collapsed && (
-          <span className={styles.userEmail}>{user?.email}</span>
-        )}
-        <button onClick={handleLogout} className={styles.logoutButton}>
-          <span className={styles.linkIcon}>⎋</span>
-          {!collapsed && <span>Sign Out</span>}
-        </button>
-      </div>
     </nav>
   );
 }
@@ -73,7 +57,7 @@ function getNavLinks(user, userType) {
         label: "My Profiles",
         icon: "👤",
       },
-      { href: "/family/dashboard#events", label: "Find Events", icon: "📅" },
+      { href: "/family/events", label: "Find Events", icon: "📅" },
     ];
   }
 

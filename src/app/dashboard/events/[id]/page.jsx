@@ -35,6 +35,27 @@ export default function EventDetailPage({ params }) {
   const [newCodeIsAddon, setNewCodeIsAddon] = useState(false);
   const [addingBillingCode, setAddingBillingCode] = useState(false);
 
+  const [fieldDefinitions, setFieldDefinitions] = useState([]);
+  const [selectedRegistrationId, setSelectedRegistrationId] = useState(null);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState(null);
+  const [declineTarget, setDeclineTarget] = useState(null);
+  const [overrideDialog, setOverrideDialog] = useState(null);
+
+  const [auditExpanded, setAuditExpanded] = useState(false);
+  const [auditEntries, setAuditEntries] = useState([]);
+  const [auditLoaded, setAuditLoaded] = useState(false);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditError, setAuditError] = useState(null);
+
+  const selectedRegistration =
+    registrations.find((r) => r.id === selectedRegistrationId) || null;
+  const confirmedCount = registrations.filter(
+    (r) => r.status === "confirmed",
+  ).length;
+  const atOrOverCapacity = event && confirmedCount >= event.capacity;
+
   useEffect(() => {
     async function fetchEvent() {
       try {
@@ -138,6 +159,172 @@ export default function EventDetailPage({ params }) {
 
     fetchBillingCodes();
   }, [id, user]);
+
+  useEffect(() => {
+    async function fetchFieldDefinitions() {
+      try {
+        const res = await fetch("/api/fields");
+        const data = await res.json();
+        if (res.ok) setFieldDefinitions(data.fields);
+      } catch (err) {
+        // custom field labels are a nice-to-have; ignore failures
+      }
+    }
+
+    fetchFieldDefinitions();
+  }, []);
+
+  function openRegistration(registration) {
+    setSelectedRegistrationId(registration.id);
+    setNotesDraft(registration.staff_notes || "");
+    setActionError(null);
+  }
+
+  function closeRegistration() {
+    setSelectedRegistrationId(null);
+  }
+
+  async function fetchAudit() {
+    setAuditLoading(true);
+    setAuditError(null);
+    try {
+      const res = await fetch(`/api/events/${id}/audit`);
+      const data = await res.json();
+      if (!res.ok) {
+        setAuditError(data.error);
+        return;
+      }
+      setAuditEntries(data.entries);
+      setAuditLoaded(true);
+    } catch (err) {
+      setAuditError("Failed to load activity log.");
+    } finally {
+      setAuditLoading(false);
+    }
+  }
+
+  function toggleAudit() {
+    const next = !auditExpanded;
+    setAuditExpanded(next);
+    if (next && !auditLoaded) {
+      fetchAudit();
+    }
+  }
+
+  function applyRegistrationUpdate(updated) {
+    setRegistrations((prev) =>
+      prev.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)),
+    );
+    if (auditExpanded) fetchAudit();
+  }
+
+  async function patchRegistration(registrationId, payload) {
+    const res = await fetch(`/api/registrations/${registrationId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  async function handleConfirm(registration) {
+    setActionError(null);
+    setActionLoading(true);
+    try {
+      const { ok, status, data } = await patchRegistration(registration.id, {
+        status: "confirmed",
+        staff_notes: notesDraft,
+      });
+
+      if (status === 409 && data.requires_override) {
+        setOverrideDialog({
+          registrationId: registration.id,
+          confirmedCount: data.confirmed_count,
+          capacity: data.capacity,
+          reason: "",
+          submitting: false,
+          error: null,
+        });
+        return;
+      }
+
+      if (!ok) {
+        setActionError(data.error || "Failed to confirm registration.");
+        return;
+      }
+
+      applyRegistrationUpdate(data.registration);
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleOverrideConfirm() {
+    if (!overrideDialog || !overrideDialog.reason.trim()) return;
+
+    setOverrideDialog((prev) => ({ ...prev, submitting: true, error: null }));
+
+    const { ok, data } = await patchRegistration(overrideDialog.registrationId, {
+      status: "confirmed",
+      staff_notes: notesDraft,
+      override_reason: overrideDialog.reason,
+    });
+
+    if (!ok) {
+      setOverrideDialog((prev) => ({
+        ...prev,
+        submitting: false,
+        error: data.error || "Failed to confirm registration.",
+      }));
+      return;
+    }
+
+    applyRegistrationUpdate(data.registration);
+    setOverrideDialog(null);
+  }
+
+  async function handleDeclineConfirm() {
+    if (!declineTarget) return;
+    setActionError(null);
+    setActionLoading(true);
+    try {
+      const { ok, data } = await patchRegistration(declineTarget.id, {
+        status: "declined",
+        staff_notes: notesDraft,
+      });
+
+      if (!ok) {
+        setActionError(data.error || "Failed to decline registration.");
+        return;
+      }
+
+      applyRegistrationUpdate(data.registration);
+    } finally {
+      setActionLoading(false);
+      setDeclineTarget(null);
+    }
+  }
+
+  async function handleReset(registration) {
+    setActionError(null);
+    setActionLoading(true);
+    try {
+      const { ok, data } = await patchRegistration(registration.id, {
+        status: "pending",
+        staff_notes: notesDraft,
+      });
+
+      if (!ok) {
+        setActionError(data.error || "Failed to reset registration.");
+        return;
+      }
+
+      applyRegistrationUpdate(data.registration);
+    } finally {
+      setActionLoading(false);
+    }
+  }
 
   async function handleAddBillingCode() {
     if (!selectedBillingCode) return;
@@ -566,14 +753,11 @@ export default function EventDetailPage({ params }) {
             <>
               <p
                 className={
-                  registrations.length > event.capacity
-                    ? styles.capacityBarOver
-                    : styles.capacityBar
+                  atOrOverCapacity ? styles.capacityBarOver : styles.capacityBar
                 }
               >
-                {registrations.length} registered / {event.capacity} capacity
-                {registrations.length > event.capacity &&
-                  " — over capacity"}
+                {confirmedCount} confirmed / {event.capacity} capacity
+                {atOrOverCapacity && " — at capacity"}
               </p>
 
               {registrations.length === 0 ? (
@@ -591,15 +775,35 @@ export default function EventDetailPage({ params }) {
                   </thead>
                   <tbody>
                     {registrations.map((reg) => (
-                      <tr key={reg.id}>
+                      <tr
+                        key={reg.id}
+                        className={styles.rosterRow}
+                        onClick={() => openRegistration(reg)}
+                      >
                         <td>
                           {reg.first_name} {reg.last_name}
                         </td>
                         <td>{reg.support_needs || "—"}</td>
                         <td>
-                          <span className={styles.statusBadge}>
+                          <span
+                            className={
+                              reg.status === "confirmed"
+                                ? styles.statusConfirmed
+                                : reg.status === "declined"
+                                  ? styles.statusDeclined
+                                  : styles.statusPending
+                            }
+                          >
                             {reg.status}
                           </span>
+                          {reg.is_over_capacity_override && (
+                            <span
+                              className={styles.overrideIcon}
+                              title="Confirmed over capacity via override"
+                            >
+                              ⚠️
+                            </span>
+                          )}
                         </td>
                         <td>
                           {reg.payment_type === "self_pay" ? (
@@ -617,6 +821,301 @@ export default function EventDetailPage({ params }) {
                     ))}
                   </tbody>
                 </table>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {selectedRegistration && (
+        <div
+          className={styles.overlay}
+          onClick={closeRegistration}
+        >
+          <div
+            className={styles.detailPanel}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.detailHeader}>
+              <h2>
+                {selectedRegistration.first_name}{" "}
+                {selectedRegistration.last_name}
+              </h2>
+              <button
+                type="button"
+                className={styles.closeButton}
+                onClick={closeRegistration}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            {actionError && (
+              <div className={styles.errorBanner}>{actionError}</div>
+            )}
+
+            <div className={styles.detailSection}>
+              <p>
+                DOB:{" "}
+                {selectedRegistration.date_of_birth
+                  ? new Date(
+                      selectedRegistration.date_of_birth,
+                    ).toLocaleDateString()
+                  : "—"}
+              </p>
+              <p>Phone: {selectedRegistration.primary_phone || "—"}</p>
+              <p>
+                Emergency Contact:{" "}
+                {selectedRegistration.emergency_contact_name || "—"}
+                {selectedRegistration.emergency_contact_relationship &&
+                  ` (${selectedRegistration.emergency_contact_relationship})`}
+                {selectedRegistration.emergency_contact_phone &&
+                  ` — ${selectedRegistration.emergency_contact_phone}`}
+              </p>
+              <p>
+                Support Needs: {selectedRegistration.support_needs || "—"}
+              </p>
+              <p>Allergies: {selectedRegistration.allergies || "—"}</p>
+              {selectedRegistration.notes && (
+                <p>Notes: {selectedRegistration.notes}</p>
+              )}
+            </div>
+
+            {fieldDefinitions.length > 0 &&
+              Object.values(selectedRegistration.custom_values || {}).some(
+                (v) => v !== undefined && v !== null && v !== "",
+              ) && (
+                <div className={styles.detailSection}>
+                  <h3>Custom Fields</h3>
+                  {fieldDefinitions.map((field) => {
+                    const value =
+                      selectedRegistration.custom_values?.[field.field_key];
+                    if (value === undefined || value === null || value === "")
+                      return null;
+                    return (
+                      <p key={field.id}>
+                        <strong>{field.label}:</strong>{" "}
+                        {Array.isArray(value) ? value.join(", ") : String(value)}
+                      </p>
+                    );
+                  })}
+                </div>
+              )}
+
+            {selectedRegistration.billing_codes?.length > 0 && (
+              <div className={styles.detailSection}>
+                <h3>Billing Codes</h3>
+                {selectedRegistration.billing_codes.map((code) => (
+                  <p key={code.id}>
+                    {code.code} — {code.description}: $
+                    {Number(code.rate).toFixed(2)}
+                  </p>
+                ))}
+                <p className={styles.billingTotal}>
+                  Total: ${Number(selectedRegistration.billing_total || 0).toFixed(2)}
+                </p>
+              </div>
+            )}
+
+            <div className={styles.detailSection}>
+              <p>
+                Payment Type:{" "}
+                {selectedRegistration.payment_type === "self_pay"
+                  ? "Self Pay"
+                  : "Funded"}
+              </p>
+              <p style={{ textTransform: "capitalize" }}>
+                Status: {selectedRegistration.status}
+              </p>
+              <p>
+                Registered:{" "}
+                {new Date(selectedRegistration.created_at).toLocaleDateString(
+                  "en-US",
+                  { month: "short", day: "numeric", year: "numeric" },
+                )}
+              </p>
+            </div>
+
+            <div className={styles.detailSection}>
+              <h3>Staff Notes</h3>
+              <textarea
+                className={styles.notesField}
+                rows={3}
+                value={notesDraft}
+                onChange={(e) => setNotesDraft(e.target.value)}
+              />
+            </div>
+
+            <div className={styles.detailActions}>
+              <button
+                type="button"
+                className={styles.confirmButton}
+                disabled={
+                  actionLoading || selectedRegistration.status === "confirmed"
+                }
+                onClick={() => handleConfirm(selectedRegistration)}
+              >
+                Confirm
+              </button>
+              <button
+                type="button"
+                className={styles.declineButton}
+                disabled={
+                  actionLoading || selectedRegistration.status === "declined"
+                }
+                onClick={() => setDeclineTarget(selectedRegistration)}
+              >
+                Decline
+              </button>
+              {(selectedRegistration.status === "confirmed" ||
+                selectedRegistration.status === "declined") && (
+                <button
+                  type="button"
+                  className={styles.resetButton}
+                  disabled={actionLoading}
+                  onClick={() => handleReset(selectedRegistration)}
+                >
+                  Reset to Pending
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() =>
+                  router.push(
+                    `/dashboard/events/${id}/move/${selectedRegistration.id}`,
+                  )
+                }
+                className={styles.moveButton}
+              >
+                Move to Another Event
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {declineTarget && (
+        <div
+          className={styles.overlay}
+          onClick={() => setDeclineTarget(null)}
+        >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <p>
+              Decline this registration for {declineTarget.first_name}{" "}
+              {declineTarget.last_name}?
+            </p>
+            <div className={styles.modalActions}>
+              <button type="button" onClick={() => setDeclineTarget(null)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeclineConfirm}
+                disabled={actionLoading}
+              >
+                {actionLoading ? "Declining..." : "Decline"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {overrideDialog && (
+        <div
+          className={styles.overlay}
+          onClick={() =>
+            !overrideDialog.submitting && setOverrideDialog(null)
+          }
+        >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <p>
+              ⚠️ This event is at capacity ({overrideDialog.confirmedCount}/
+              {overrideDialog.capacity} confirmed). Confirming will bring it
+              to {overrideDialog.confirmedCount + 1}/{overrideDialog.capacity}.
+            </p>
+            <label htmlFor="overrideReason">Override reason (required)</label>
+            <textarea
+              id="overrideReason"
+              rows={3}
+              value={overrideDialog.reason}
+              onChange={(e) =>
+                setOverrideDialog((prev) => ({
+                  ...prev,
+                  reason: e.target.value,
+                }))
+              }
+            />
+            {overrideDialog.error && (
+              <div className={styles.errorBanner}>{overrideDialog.error}</div>
+            )}
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                onClick={() => setOverrideDialog(null)}
+                disabled={overrideDialog.submitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleOverrideConfirm}
+                disabled={
+                  !overrideDialog.reason.trim() || overrideDialog.submitting
+                }
+              >
+                {overrideDialog.submitting ? "Confirming..." : "Confirm Anyway"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.rosterSection}>
+        <div className={styles.card}>
+          <button
+            type="button"
+            className={styles.auditToggle}
+            onClick={toggleAudit}
+          >
+            {auditExpanded ? "▾" : "▸"} Activity Log
+          </button>
+
+          {auditExpanded && (
+            <>
+              {auditLoading ? (
+                <p className={styles.loading}>Loading activity log...</p>
+              ) : auditError ? (
+                <div className={styles.errorBanner}>{auditError}</div>
+              ) : auditEntries.length === 0 ? (
+                <p className={styles.emptyState}>No activity yet.</p>
+              ) : (
+                <div className={styles.auditList}>
+                  {auditEntries.map((entry) => (
+                    <div key={entry.id} className={styles.auditEntry}>
+                      <div className={styles.auditEntryHeader}>
+                        <span>
+                          {entry.client_name || "Unknown client"} —{" "}
+                          {entry.action === "moved"
+                            ? `Moved from ${entry.from_event_title || "a previous event"} to ${entry.to_event_title || "a new event"}`
+                            : `${entry.from_status} → ${entry.to_status}`}
+                        </span>
+                        <span>
+                          {new Date(entry.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className={styles.auditEntryMeta}>
+                        {entry.action} by{" "}
+                        {entry.performed_by_email || "unknown staff"}
+                      </div>
+                      {entry.notes && (
+                        <div className={styles.auditEntryNotes}>
+                          {entry.notes}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </>
           )}

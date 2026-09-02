@@ -2,47 +2,22 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import SearchableSelect from "@/components/SearchableSelect";
 import styles from "./family-dashboard.module.css";
+
+function statusBadgeClass(status, styles) {
+  if (status === "confirmed") return styles.statusConfirmed;
+  if (status === "declined") return styles.statusDeclined;
+  return styles.statusPending;
+}
 
 export default function FamilyDashboardPage() {
   const router = useRouter();
   const [family, setFamily] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [registrations, setRegistrations] = useState([]);
+  const [summary, setSummary] = useState({ total: 0, confirmed: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const [counties, setCounties] = useState([]);
-  const [eventSearch, setEventSearch] = useState("");
-  const [eventCounty, setEventCounty] = useState(null);
-  const [events, setEvents] = useState([]);
-  const [loadingEvents, setLoadingEvents] = useState(false);
-  const [eventsError, setEventsError] = useState(null);
-
-  async function fetchEvents(searchQuery, countyItem) {
-    setLoadingEvents(true);
-    setEventsError(null);
-
-    try {
-      const params = new URLSearchParams();
-      if (countyItem) params.set("county_id", countyItem.id);
-      if (searchQuery) params.set("search", searchQuery);
-
-      const res = await fetch(`/api/public/events?${params.toString()}`);
-      const data = await res.json();
-
-      if (res.ok) {
-        setEvents(data.events);
-      } else {
-        setEventsError(data.error);
-      }
-    } catch (err) {
-      setEventsError("Failed to load events.");
-    } finally {
-      setLoadingEvents(false);
-    }
-  }
 
   useEffect(() => {
     async function init() {
@@ -57,12 +32,11 @@ export default function FamilyDashboardPage() {
 
         setFamily(data.user);
 
-        const [profilesRes, registrationsRes, countiesRes] =
-          await Promise.all([
-            fetch("/api/family/profiles"),
-            fetch("/api/family/registrations"),
-            fetch("/api/counties"),
-          ]);
+        const [profilesRes, registrationsRes, summaryRes] = await Promise.all([
+          fetch("/api/family/profiles"),
+          fetch("/api/family/registrations"),
+          fetch("/api/family/registrations/summary"),
+        ]);
 
         const profilesData = await profilesRes.json();
 
@@ -73,32 +47,10 @@ export default function FamilyDashboardPage() {
         }
 
         const registrationsData = await registrationsRes.json();
+        if (registrationsRes.ok) setRegistrations(registrationsData.registrations);
 
-        if (registrationsRes.ok) {
-          setRegistrations(registrationsData.registrations);
-        }
-
-        const countiesData = await countiesRes.json();
-        let initialCounty = null;
-
-        if (countiesRes.ok) {
-          setCounties(
-            countiesData.counties.map((county) => ({
-              id: county.id,
-              label: county.name,
-            })),
-          );
-        }
-
-        if (profilesRes.ok && profilesData.family_county_id) {
-          initialCounty = {
-            id: profilesData.family_county_id,
-            label: profilesData.family_county_name,
-          };
-          setEventCounty(initialCounty);
-        }
-
-        fetchEvents("", initialCounty);
+        const summaryData = await summaryRes.json();
+        if (summaryRes.ok) setSummary(summaryData);
       } catch (err) {
         router.push("/login");
       } finally {
@@ -109,22 +61,22 @@ export default function FamilyDashboardPage() {
     init();
   }, [router]);
 
-  function handleEventSearchSubmit(e) {
-    e.preventDefault();
-    fetchEvents(eventSearch, eventCounty);
-  }
-
-  function handleEventCountyChange(item) {
-    setEventCounty(item);
-    fetchEvents(eventSearch, item);
-  }
-
   if (loading) {
     return (
       <main className={styles.main}>
         <p className={styles.loading}>Loading...</p>
       </main>
     );
+  }
+
+  const registrationsByClient = new Map();
+  for (const reg of registrations) {
+    const clientName =
+      `${reg.client_first_name || ""} ${reg.client_last_name || ""}`.trim() ||
+      "Unknown";
+    const list = registrationsByClient.get(clientName) || [];
+    list.push(reg);
+    registrationsByClient.set(clientName, list);
   }
 
   return (
@@ -138,65 +90,81 @@ export default function FamilyDashboardPage() {
 
       {error && <div className={styles.errorBanner}>{error}</div>}
 
-      <div id="events" className={styles.card}>
-        <h2>Find Events</h2>
+      <div className={styles.widgetGrid}>
+        <div className={styles.widgetCard}>
+          <span className={styles.widgetNumber}>{profiles.length}</span>
+          <span className={styles.widgetLabel}>people</span>
+          <span className={styles.widgetTitle}>My Profiles</span>
+        </div>
+        <div className={styles.widgetCard}>
+          <span className={styles.widgetNumber}>{summary.total}</span>
+          <span className={styles.widgetLabel}>registrations</span>
+          <span className={styles.widgetTitle}>Registered</span>
+        </div>
+        <div className={styles.widgetCard}>
+          <span className={styles.widgetNumber}>{summary.confirmed}</span>
+          <span className={styles.widgetLabel}>confirmed</span>
+          <span className={styles.widgetTitle}>Confirmed</span>
+        </div>
+      </div>
 
-        <form onSubmit={handleEventSearchSubmit} className={styles.eventSearchRow}>
-          <input
-            type="text"
-            value={eventSearch}
-            onChange={(e) => setEventSearch(e.target.value)}
-            placeholder="Search events..."
-            className={styles.eventSearchInput}
-          />
-          <div className={styles.eventCountySelect}>
-            <SearchableSelect
-              items={counties}
-              onSelect={handleEventCountyChange}
-              selected={eventCounty}
-              placeholder="All counties"
-            />
-          </div>
-          <button type="submit">Search</button>
-        </form>
+      <div id="events" className={`${styles.card} ${styles.registrationsCard}`}>
+        <div className={styles.cardHeader}>
+          <h2>Registered Events</h2>
+          <Link href="/family/events" className={styles.addButton}>
+            Find Events
+          </Link>
+        </div>
 
-        <p className={styles.eventsScope}>
-          {eventCounty
-            ? `Showing events in ${eventCounty.label} County`
-            : "Showing all events"}
-        </p>
-
-        {eventsError && <div className={styles.errorBanner}>{eventsError}</div>}
-
-        {loadingEvents ? (
-          <p className={styles.emptyState}>Loading events...</p>
-        ) : events.length === 0 ? (
-          <p className={styles.emptyState}>No upcoming events found.</p>
+        {registrations.length === 0 ? (
+          <p className={styles.emptyState}>No registrations yet.</p>
         ) : (
-          <div className={styles.eventsList}>
-            {events.map((event) => {
-              const date = new Date(event.date);
-              return (
-                <div key={event.id} className={styles.eventCard}>
-                  <div>
-                    <span className={styles.profileName}>{event.title}</span>
-                    <span className={styles.registrationMeta}>
-                      {event.org_name} · {date.toLocaleDateString()} ·{" "}
-                      {event.location || "TBD"} ·{" "}
-                      {Number(event.cost)
-                        ? `$${Number(event.cost).toFixed(2)}`
-                        : "Free"}
-                    </span>
-                  </div>
-                  <Link
-                    href={`/${event.org_slug}/events/${event.id}`}
-                    className={styles.editLink}
-                  >
-                    View Event
-                  </Link>
+          <div className={styles.registrationGroups}>
+            {[...registrationsByClient.entries()].map(([clientName, regs]) => (
+              <div key={clientName} className={styles.registrationGroup}>
+                <h3 className={styles.registrationGroupTitle}>{clientName}</h3>
+                <div className={styles.registrationsList}>
+                  {regs.map((reg) => {
+                    const date = reg.event_date
+                      ? new Date(reg.event_date)
+                      : null;
+                    return (
+                      <Link
+                        key={reg.id}
+                        href={
+                          reg.org_slug
+                            ? `/${reg.org_slug}/events/${reg.event_id}`
+                            : "#"
+                        }
+                        className={styles.registrationRow}
+                      >
+                        <div>
+                          <span className={styles.profileName}>
+                            {reg.event_title}
+                          </span>
+                          <span className={styles.registrationMeta}>
+                            {reg.org_name} ·{" "}
+                            {date ? date.toLocaleDateString() : ""}
+                          </span>
+                        </div>
+                        <div className={styles.registrationStatusGroup}>
+                          <span
+                            className={statusBadgeClass(reg.status, styles)}
+                          >
+                            {reg.status}
+                          </span>
+                          <span className={styles.paymentTypeLabel}>
+                            {reg.payment_type === "self_pay"
+                              ? "Self Pay"
+                              : "Funded"}
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -212,57 +180,26 @@ export default function FamilyDashboardPage() {
         {profiles.length === 0 ? (
           <p className={styles.emptyState}>No profiles yet.</p>
         ) : (
-          <div className={styles.profilesList}>
+          <div className={styles.profileCardGrid}>
             {profiles.map((profile) => (
-              <div key={profile.id} className={styles.profileRow}>
+              <div key={profile.id} className={styles.profileCard}>
                 <span className={styles.profileName}>
                   {profile.first_name} {profile.last_name}
+                </span>
+                <span className={styles.profileDob}>
+                  DOB:{" "}
+                  {profile.date_of_birth
+                    ? new Date(profile.date_of_birth).toLocaleDateString()
+                    : "—"}
                 </span>
                 <Link
                   href={`/family/profiles/${profile.id}`}
                   className={styles.editLink}
                 >
-                  Edit
+                  View / Edit
                 </Link>
               </div>
             ))}
-          </div>
-        )}
-      </div>
-
-      <div className={`${styles.card} ${styles.registrationsCard}`}>
-        <div className={styles.cardHeader}>
-          <h2>Registrations</h2>
-        </div>
-
-        {registrations.length === 0 ? (
-          <p className={styles.emptyState}>No registrations yet.</p>
-        ) : (
-          <div className={styles.registrationsList}>
-            {registrations.map((reg) => {
-              const date = reg.event_date ? new Date(reg.event_date) : null;
-              return (
-                <div key={reg.id} className={styles.registrationRow}>
-                  <div>
-                    <span className={styles.profileName}>
-                      {reg.event_title}
-                    </span>
-                    <span className={styles.registrationMeta}>
-                      {reg.org_name} · {date ? date.toLocaleDateString() : ""}{" "}
-                      · {reg.client_first_name} {reg.client_last_name}
-                    </span>
-                  </div>
-                  <div className={styles.registrationStatusGroup}>
-                    <span className={styles.statusBadge}>{reg.status}</span>
-                    <span className={styles.paymentTypeLabel}>
-                      {reg.payment_type === "self_pay"
-                        ? "Self Pay"
-                        : "Funded"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         )}
       </div>

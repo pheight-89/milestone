@@ -144,10 +144,6 @@ export default function SettingsPage() {
           <span className={styles.label}>Name</span>
           <span>{org?.name}</span>
         </div>
-        <div className={styles.readonlyField}>
-          <span className={styles.label}>Slug</span>
-          <span>{org?.slug}</span>
-        </div>
       </div>
 
       <div className={styles.card}>

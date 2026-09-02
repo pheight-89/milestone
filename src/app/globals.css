@@ -10,6 +10,12 @@
   --color-error: #b91c1c;
   --color-error-bg: #fee2e2;
   --color-error-border: #fecaca;
+  --color-success: #15803d;
+  --color-success-bg: #dcfce7;
+  --color-success-border: #bbf7d0;
+  --color-info: #1d4ed8;
+  --color-info-bg: #dbeafe;
+  --color-info-border: #bfdbfe;
   --border-color: #ddd;
 
   --space-1: 0.25rem;

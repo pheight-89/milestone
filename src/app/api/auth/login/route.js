@@ -33,5 +33,7 @@ export async function POST(request) {
     `milestone_token=${data.session.access_token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax${secure}`,
   );
 
+  response.headers.append("Cache-Control", "no-store");
+
   return response;
 }

@@ -190,87 +190,32 @@
 }
 
 .individualCard {
+  background: var(--color-white);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   padding: var(--space-5);
+  cursor: pointer;
 }
 
-.individualHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--space-3);
-}
-
-.individualHeader h3 {
+.individualCard h3 {
   font-size: var(--font-size-base);
   margin: 0 0 var(--space-1) 0;
 }
 
-.meta {
-  color: var(--color-gray-500);
+.viewProfile {
+  display: block;
+  text-align: right;
   font-size: var(--font-size-sm);
-  margin: 0;
-}
-
-.editButton {
-  padding: var(--space-1) var(--space-4);
-  background: transparent;
-  border: 1px solid var(--color-black);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
   font-weight: 600;
-  cursor: pointer;
-}
-
-.editButton:hover {
-  background: var(--color-black);
-  color: var(--color-white);
+  white-space: nowrap;
 }
 
 .spanDates {
   font-size: var(--font-size-sm);
   color: var(--color-gray-700);
-  margin: 0 0 var(--space-4) 0;
-}
-
-.editSpanForm {
-  display: flex;
-  gap: var(--space-4);
-  align-items: flex-end;
-  flex-wrap: wrap;
-  margin-bottom: var(--space-4);
-}
-
-.editSpanForm label {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-700);
-  font-weight: 600;
-}
-
-.editSpanForm input {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-}
-
-.editActions {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.editActions button {
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid var(--border-color);
-  background: var(--color-white);
+  margin: 0 0 var(--space-2) 0;
 }
 
 .periods {

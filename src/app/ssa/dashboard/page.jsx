@@ -1,22 +1,26 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { splitSpanByFiscalYear } from "@/lib/fiscalYear";
 import styles from "./ssa-dashboard.module.css";
 
-function toDateOnly(value) {
-  return new Date(value).toISOString().split("T")[0];
+function formatSpanDate(value) {
+  // span_start/span_end are date-only ("YYYY-MM-DD"). Parsing that directly
+  // with `new Date()` treats it as UTC midnight, which can display as the
+  // previous day in timezones behind UTC — build the date from local parts
+  // instead.
+  const [year, month, day] = value.split("T")[0].split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
-function registrationsInPeriod(registrations, period) {
-  const periodStart = toDateOnly(period.start);
-  const periodEnd = toDateOnly(period.end);
-
-  return registrations.filter((reg) => {
-    if (!reg.event_date) return false;
-    const eventDate = toDateOnly(reg.event_date);
-    return eventDate >= periodStart && eventDate <= periodEnd;
-  });
+function mostRecentSpan(spans) {
+  if (!spans || spans.length === 0) return null;
+  return spans.reduce((latest, span) =>
+    new Date(span.span_start) > new Date(latest.span_start) ? span : latest,
+  );
 }
 
 export default function SsaDashboardPage() {
@@ -27,12 +31,6 @@ export default function SsaDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [editingId, setEditingId] = useState(null);
-  const [editSpanStart, setEditSpanStart] = useState("");
-  const [editSpanEnd, setEditSpanEnd] = useState("");
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [editError, setEditError] = useState(null);
-
   const [showAddIndividual, setShowAddIndividual] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -42,20 +40,6 @@ export default function SsaDashboardPage() {
   const [addSpanEnd, setAddSpanEnd] = useState("");
   const [addingIndividual, setAddingIndividual] = useState(false);
   const [addError, setAddError] = useState(null);
-
-  const [expandedRegIds, setExpandedRegIds] = useState(new Set());
-
-  function toggleExpanded(regId) {
-    setExpandedRegIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(regId)) {
-        next.delete(regId);
-      } else {
-        next.add(regId);
-      }
-      return next;
-    });
-  }
 
   async function loadCaseload() {
     const res = await fetch("/api/ssa/caseload");
@@ -94,49 +78,6 @@ export default function SsaDashboardPage() {
 
     init();
   }, [router]);
-
-  function startEdit(entry) {
-    setEditingId(entry.id);
-    setEditSpanStart(entry.span_start ? entry.span_start.split("T")[0] : "");
-    setEditSpanEnd(entry.span_end ? entry.span_end.split("T")[0] : "");
-    setEditError(null);
-  }
-
-  async function handleSaveEdit(entryId) {
-    setSavingEdit(true);
-    setEditError(null);
-
-    try {
-      const res = await fetch(`/api/ssa/caseload/${entryId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          span_start: editSpanStart,
-          span_end: editSpanEnd,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setEditError(data.error);
-        return;
-      }
-
-      setCaseload((prev) =>
-        prev.map((entry) =>
-          entry.id === entryId
-            ? { ...entry, span_start: data.caseload.span_start, span_end: data.caseload.span_end }
-            : entry,
-        ),
-      );
-      setEditingId(null);
-    } catch (err) {
-      setEditError("Failed to save changes.");
-    } finally {
-      setSavingEdit(false);
-    }
-  }
 
   async function handleSearch(e) {
     e.preventDefault();
@@ -199,105 +140,6 @@ export default function SsaDashboardPage() {
     }
   }
 
-  function renderRegistrationRow(reg) {
-    const expanded = expandedRegIds.has(reg.id);
-    const hasBilling = reg.billing_codes && reg.billing_codes.length > 0;
-
-    return (
-      <div key={reg.id} className={styles.regRow}>
-        <button
-          type="button"
-          className={styles.regRowHeader}
-          onClick={() => toggleExpanded(reg.id)}
-        >
-          <span>{reg.event_title}</span>
-          <span>{expanded ? "▲" : "▼"}</span>
-        </button>
-        {expanded && (
-          <div className={styles.regRowDetail}>
-            <p>Event: {reg.event_title}</p>
-            <p>Org: {reg.org_name}</p>
-            <p>
-              Date:{" "}
-              {reg.event_date
-                ? new Date(reg.event_date).toLocaleDateString()
-                : "—"}
-            </p>
-            <p>
-              Status: {reg.status} |{" "}
-              {reg.payment_type === "self_pay" ? "Self Pay" : "Funded"}
-            </p>
-
-            {hasBilling ? (
-              <div className={styles.billingBreakdown}>
-                <p className={styles.billingLabel}>Billing:</p>
-                {reg.billing_codes.map((code) => (
-                  <p key={code.code} className={styles.billingLine}>
-                    {code.code} — {code.description}
-                    {code.is_addon ? " (add-on)" : ""}: $
-                    {Number(code.rate).toFixed(2)}
-                  </p>
-                ))}
-                <p className={styles.billingTotal}>
-                  Event Total: ${Number(reg.billing_total).toFixed(2)}
-                </p>
-              </div>
-            ) : (
-              <p className={styles.selfPayLine}>
-                Self Pay: ${Number(reg.event_cost || 0).toFixed(2)}
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  function renderPane(label, regs) {
-    const billedRegs = regs.filter(
-      (reg) => reg.billing_codes && reg.billing_codes.length > 0,
-    );
-    const paneTotal = billedRegs.reduce(
-      (sum, reg) => sum + Number(reg.billing_total),
-      0,
-    );
-
-    const totalsByOrg = new Map();
-    for (const reg of billedRegs) {
-      totalsByOrg.set(
-        reg.org_name,
-        (totalsByOrg.get(reg.org_name) || 0) + Number(reg.billing_total),
-      );
-    }
-
-    return (
-      <div className={styles.pane}>
-        <h5>
-          {label} ({regs.length})
-        </h5>
-        {regs.length === 0 ? (
-          <p className={styles.emptyState}>None.</p>
-        ) : (
-          <div className={styles.paneRegList}>
-            {regs.map((reg) => renderRegistrationRow(reg))}
-          </div>
-        )}
-        {totalsByOrg.size > 0 && (
-          <div className={styles.orgTotals}>
-            {[...totalsByOrg.entries()].map(([orgName, total]) => (
-              <p key={orgName} className={styles.orgTotal}>
-                {orgName} Total: ${total.toFixed(2)}
-              </p>
-            ))}
-          </div>
-        )}
-        <p className={styles.paneTotal}>
-          {label} Total: ${paneTotal.toFixed(2)}
-        </p>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <main className={styles.main}>
@@ -305,6 +147,21 @@ export default function SsaDashboardPage() {
       </main>
     );
   }
+
+  // Group per-span caseload rows into one card per individual.
+  const individualsById = new Map();
+  for (const entry of caseload) {
+    const existing = individualsById.get(entry.client_profile.id);
+    if (existing) {
+      existing.spans.push(entry);
+    } else {
+      individualsById.set(entry.client_profile.id, {
+        client_profile: entry.client_profile,
+        spans: [entry],
+      });
+    }
+  }
+  const individuals = [...individualsById.values()];
 
   return (
     <main className={styles.main}>
@@ -395,119 +252,30 @@ export default function SsaDashboardPage() {
           </div>
         )}
 
-        {caseload.length === 0 ? (
+        {individuals.length === 0 ? (
           <p className={styles.emptyState}>No individuals on caseload yet.</p>
         ) : (
           <div className={styles.caseloadList}>
-            {caseload.map((entry) => {
-              const periods = splitSpanByFiscalYear(
-                entry.span_start,
-                entry.span_end,
-              );
+            {individuals.map(({ client_profile, spans }) => {
+              const recentSpan = mostRecentSpan(spans);
 
               return (
-                <div key={entry.id} className={styles.individualCard}>
-                  <div className={styles.individualHeader}>
-                    <div>
-                      <h3>
-                        {entry.client_profile.first_name}{" "}
-                        {entry.client_profile.last_name}
-                      </h3>
-                      <p className={styles.meta}>
-                        DOB{" "}
-                        {entry.client_profile.date_of_birth
-                          ? new Date(
-                              entry.client_profile.date_of_birth,
-                            ).toLocaleDateString()
-                          : "—"}
-                      </p>
-                    </div>
-                    {editingId !== entry.id && (
-                      <button
-                        type="button"
-                        className={styles.editButton}
-                        onClick={() => startEdit(entry)}
-                      >
-                        Edit Span Year
-                      </button>
-                    )}
-                  </div>
-
-                  {editingId === entry.id ? (
-                    <div className={styles.editSpanForm}>
-                      {editError && (
-                        <div className={styles.errorBanner}>{editError}</div>
-                      )}
-                      <label>
-                        Span Start
-                        <input
-                          type="date"
-                          value={editSpanStart}
-                          onChange={(e) => setEditSpanStart(e.target.value)}
-                        />
-                      </label>
-                      <label>
-                        Span End
-                        <input
-                          type="date"
-                          value={editSpanEnd}
-                          onChange={(e) => setEditSpanEnd(e.target.value)}
-                        />
-                      </label>
-                      <div className={styles.editActions}>
-                        <button
-                          type="button"
-                          onClick={() => handleSaveEdit(entry.id)}
-                          disabled={savingEdit}
-                        >
-                          {savingEdit ? "Saving..." : "Save"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingId(null)}
-                          disabled={savingEdit}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className={styles.spanDates}>
-                      Span: {new Date(entry.span_start).toLocaleDateString()}{" "}
-                      – {new Date(entry.span_end).toLocaleDateString()}
-                    </p>
-                  )}
-
-                  <div className={styles.periods}>
-                    {periods.map((period) => {
-                      const periodRegs = registrationsInPeriod(
-                        entry.registrations,
-                        period,
-                      );
-                      const confirmedRegs = periodRegs.filter(
-                        (reg) => reg.status === "confirmed",
-                      );
-                      const pendingRegs = periodRegs.filter(
-                        (reg) => reg.status === "pending",
-                      );
-
-                      return (
-                        <div key={period.label} className={styles.period}>
-                          <h4>{period.label}</h4>
-                          {periodRegs.length === 0 ? (
-                            <p className={styles.emptyState}>
-                              No events registered in this period.
-                            </p>
-                          ) : (
-                            <>
-                              {renderPane("Confirmed", confirmedRegs)}
-                              {renderPane("Pending", pendingRegs)}
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                <div
+                  key={client_profile.id}
+                  className={styles.individualCard}
+                  onClick={() =>
+                    router.push(`/ssa/caseload/${client_profile.id}`)
+                  }
+                >
+                  <h3>
+                    {client_profile.first_name} {client_profile.last_name}
+                  </h3>
+                  <p className={styles.spanDates}>
+                    {recentSpan
+                      ? `Span: ${formatSpanDate(recentSpan.span_start)} - ${formatSpanDate(recentSpan.span_end)}`
+                      : "No span year set"}
+                  </p>
+                  <span className={styles.viewProfile}>View Profile →</span>
                 </div>
               );
             })}

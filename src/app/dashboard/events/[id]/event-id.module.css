@@ -71,13 +71,54 @@
 
 .selfPayBadge {
   display: inline-block;
-  background: var(--color-error-bg);
-  border: 1px solid var(--color-error-border);
-  color: var(--color-error);
+  background: var(--color-info-bg);
+  border: 1px solid var(--color-info-border);
+  color: var(--color-info);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   font-weight: 600;
+}
+
+.statusPending,
+.statusConfirmed,
+.statusDeclined {
+  display: inline-block;
+  text-transform: capitalize;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.statusPending {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.statusConfirmed {
+  background: var(--color-success-bg);
+  border: 1px solid var(--color-success-border);
+  color: var(--color-success);
+}
+
+.statusDeclined {
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+}
+
+.overrideIcon {
+  margin-left: var(--space-2);
+  cursor: help;
+}
+
+.rosterRow {
+  cursor: pointer;
+}
+
+.rosterRow:hover {
+  background: var(--color-gray-100);
 }
 
 .helperText {
@@ -159,4 +200,338 @@
 .formRow button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Detail panel */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 100;
+}
+
+.detailPanel {
+  background: var(--color-white);
+  width: 100%;
+  max-width: 420px;
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-6);
+  box-shadow: var(--shadow-md);
+}
+
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-4);
+}
+
+.detailHeader h2 {
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-gray-600);
+  padding: 0 var(--space-1);
+}
+
+.detailSection {
+  margin-bottom: var(--space-5);
+}
+
+.detailSection h3 {
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-gray-600);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.detailSection p {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--font-size-sm);
+}
+
+.billingTotal {
+  font-weight: 600;
+  margin-top: var(--space-2) !important;
+}
+
+.notesField {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  resize: vertical;
+}
+
+.detailActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+}
+
+.confirmButton,
+.declineButton,
+.resetButton,
+.moveButton {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.confirmButton {
+  background: var(--color-success);
+  color: var(--color-white);
+}
+
+.declineButton {
+  background: var(--color-error);
+  color: var(--color-white);
+}
+
+.resetButton {
+  background: transparent;
+  border-color: var(--border-color);
+  color: var(--color-gray-700);
+}
+
+.moveButton {
+  background: transparent;
+  border-color: var(--color-info-border);
+  color: var(--color-info);
+}
+
+.confirmButton:disabled,
+.declineButton:disabled,
+.resetButton:disabled,
+.moveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Modals */
+
+.modal {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
+  max-width: 420px;
+  width: 90%;
+  margin: auto;
+}
+
+.modal p {
+  margin: 0 0 var(--space-4) 0;
+  font-size: var(--font-size-sm);
+}
+
+.modal label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.modal textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  resize: vertical;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.modalActions button {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background: var(--color-white);
+}
+
+.modalActions button:last-child {
+  background: var(--color-primary);
+  color: var(--color-white);
+  border-color: var(--color-primary);
+}
+
+.modalActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Audit log */
+
+.auditToggle {
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.auditList {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.auditEntry {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.auditEntryHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.auditEntryMeta {
+  color: var(--color-gray-600);
+}
+
+.auditEntryNotes {
+  margin-top: var(--space-1);
+  color: var(--color-gray-700);
+}
+
+/* Move registration page */
+
+.subject {
+  color: var(--color-gray-600);
+  margin-bottom: var(--space-6);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-4);
+}
+
+.eventList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.eventRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  background: var(--color-white);
+  width: 100%;
+}
+
+.eventRow:hover {
+  background: var(--color-gray-100);
+}
+
+.eventRowSelected {
+  border-color: var(--color-primary);
+  background: var(--color-gray-100);
+}
+
+.eventRowBody {
+  flex: 1;
+}
+
+.eventRowTitle {
+  font-weight: 600;
+}
+
+.eventRowMeta {
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-1);
+}
+
+.capacityTag {
+  color: var(--color-gray-700);
+}
+
+.capacityTagOver {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+.selectedEventBox,
+.overrideBox {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.overrideBox {
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+}
+
+.overrideBox label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  margin: var(--space-3) 0 var(--space-2) 0;
+}
+
+.overrideBox textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  resize: vertical;
+}
+
+.overrideActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
 }
